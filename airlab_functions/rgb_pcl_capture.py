@@ -39,8 +39,8 @@ class TimeSyncNode(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
         
-        queue_size = 1
-        max_delay = 0.1
+        queue_size = 10
+        max_delay = 0.01
         self.time_sync = ApproximateTimeSynchronizer([self.sub_rgb,self.sub_pcl],
                                                      queue_size, max_delay)
         self.time_sync.registerCallback(self.SyncCallback)
@@ -52,24 +52,27 @@ class TimeSyncNode(Node):
         global transf_out
         
         if i%25==10:
+            time = rclpy.time.Time(seconds=pcl.header.stamp.sec,nanoseconds=pcl.header.stamp.nanosec)
             from_frame_rel = self.target_frame
             to_frame_rel = 'odom'
             try:
                 t = self.tf_buffer.lookup_transform(
                     to_frame_rel,
                     from_frame_rel,
-                    rclpy.time.Time())
+                    time)
+                #creating transformation matrix from frame transform information
+                tf_t = np.array([t.transform.translation.x, t.transform.translation.y,t.transform.translation.z])
+                tf_r = np.array([t.transform.rotation.x, t.transform.rotation.y, t.transform.rotation.z, t.transform.rotation.w])
+                r = Rotation.from_quat(tf_r)
+                transf = np.eye(4)
+                transf[:3,:3]=r.as_matrix()
+                transf[:3,3]=tf_t
+                
             except TransformException as ex:
                 self.get_logger().info(
                     f'Could not transform {to_frame_rel} to {from_frame_rel}: {ex}')
                 return
-            #creating transformation matrix from frame transform information
-            tf_t = np.array([t.transform.translation.x, t.transform.translation.y,t.transform.translation.z])
-            tf_r = np.array([t.transform.rotation.x, t.transform.rotation.y, t.transform.rotation.z, t.transform.rotation.w])
-            r = Rotation.from_quat(tf_r)
-            transf = np.eye(4)
-            transf[:3,:3]=r.as_matrix()
-            transf[:3,3]=tf_t
+            
             #convering pointcloud to open3d format
             pcl_data = rnp.numpify(pcl)
             img_data = rnp.numpify(rgb)
