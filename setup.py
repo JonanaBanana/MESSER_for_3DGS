@@ -23,7 +23,8 @@ setup(
         'isaac_pc_cat = airlab_functions.isaac_pc_cat:main',
         'isaac_image_capture = airlab_functions.isaac_image_capture:main',
         'rgb_pcl_capture = airlab_functions.rgb_pcl_capture:main',
-        'pc_repub = airlab_functions.pc_repub:main'
+        'pc_repub = airlab_functions.pc_repub:main',
+        'rgb_pcl_viz = airlab_functions.rgb_pcl_visualizer:main'
         ],
     },
 )
