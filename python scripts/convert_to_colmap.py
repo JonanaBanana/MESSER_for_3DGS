@@ -12,6 +12,57 @@ import collections
 import struct
 
 ##################################################################
+##################### DECLARE CONSTANTS ##########################
+##################################################################
+voxel_size = 0.2
+min_x = 5 #min distance to keep points
+max_x = 60 #max distance to keep points
+f = 1108.5125019853992
+h = 720
+w = 1280
+px = 640
+py = 360
+fov_x = 2*np.arctan2(w,(2*f))
+fov_y = 2*np.arctan2(h,(2*f))
+#projection matrix to project 3d points to image plane
+proj_mat = np.array([[f, 0, px, 0],
+                    [0, f, py, 0],
+                    [0, 0, 1, 0]])
+
+#rotation around y axis due to camera frame issue in IsaacSim
+#transform_out = np.array([[-1.0, -0.0, 0.0, 0.0],   
+#                          [0.0, 1.0, 0.0, 0.0],   
+#                          [0.0, 0.0, -1.0, 0.0],   
+#                          [0.0, 0.0, 0.0, 1.0]])
+#transformation matrix to transform between world and camera frame
+#trans_mat = np.linalg.pinv(np.array([[0.0, 0.0, 1.0, 0.0],
+#                                     [-1.0, 0.0, 0.0, 0.0],
+#                                     [0.0, -1.0, 0.0, 0.0],
+#                                     [0.0, 0.0, 0.0, 1.0]]))
+
+# Paths
+main_path = '/home/jonathan/Reconstruction/windmill_stage'
+image_path = os.path.join(main_path,'input')
+pcd_path = os.path.join(main_path,'pcd')
+reconstructed_path = os.path.join(main_path,'reconstructed.pcd')
+transform_path = os.path.join(main_path,'transformations.csv')
+output_path = os.path.join(main_path,'distorted/sparse/0')
+cameras_txt_path = os.path.join(output_path,'cameras.txt')
+cameras_bin_path = os.path.join(output_path,'cameras.bin')
+images_txt_path = os.path.join(output_path,'images.txt')
+images_bin_path = os.path.join(output_path,'images.bin')
+points3D_txt_path = os.path.join(output_path,'points3D.txt')
+points3D_bin_path = os.path.join(output_path,'points3D.bin')
+if not os.path.isdir(output_path):
+    os.makedirs(output_path)
+
+
+##################################################################
+##################################################################
+##################################################################
+
+
+##################################################################
 ########### FUNCTIONS FROM COLMAP read_write_model.py ############
 ##################################################################
 
@@ -360,56 +411,6 @@ def convert_to_colmap_points3D(p3d,N):
             point2D_idxs=point2D_idxs,
         )
     return points3D
-
-##################################################################
-##################################################################
-##################################################################
-
-##################################################################
-##################### DECLARE CONSTANTS ##########################
-##################################################################
-voxel_size = 0.2
-min_x = 5 #min distance to keep points
-max_x = 60 #max distance to keep points
-f = 1108.5125019853992
-h = 720
-w = 1280
-px = 640
-py = 360
-fov_x = 2*np.arctan2(w,(2*f))
-fov_y = 2*np.arctan2(h,(2*f))
-#projection matrix to project 3d points to image plane
-proj_mat = np.array([[f, 0, px, 0],
-                    [0, f, py, 0],
-                    [0, 0, 1, 0]])
-
-#rotation around y axis due to camera frame issue in IsaacSim
-#transform_out = np.array([[-1.0, -0.0, 0.0, 0.0],   
-#                          [0.0, 1.0, 0.0, 0.0],   
-#                          [0.0, 0.0, -1.0, 0.0],   
-#                          [0.0, 0.0, 0.0, 1.0]])
-#transformation matrix to transform between world and camera frame
-#trans_mat = np.linalg.pinv(np.array([[0.0, 0.0, 1.0, 0.0],
-#                                     [-1.0, 0.0, 0.0, 0.0],
-#                                     [0.0, -1.0, 0.0, 0.0],
-#                                     [0.0, 0.0, 0.0, 1.0]]))
-
-# Paths
-main_path = '/home/jonathan/Reconstruction/windmill_full_stage'
-image_path = os.path.join(main_path,'input')
-pcd_path = os.path.join(main_path,'pcd')
-reconstructed_path = os.path.join(main_path,'reconstructed.pcd')
-transform_path = os.path.join(main_path,'transformations.csv')
-output_path = os.path.join(main_path,'distorted/sparse/0')
-cameras_txt_path = os.path.join(output_path,'cameras.txt')
-cameras_bin_path = os.path.join(output_path,'cameras.bin')
-images_txt_path = os.path.join(output_path,'images.txt')
-images_bin_path = os.path.join(output_path,'images.bin')
-points3D_txt_path = os.path.join(output_path,'points3D.txt')
-points3D_bin_path = os.path.join(output_path,'points3D.bin')
-if not os.path.isdir(output_path):
-    os.makedirs(output_path)
-
 
 ##################################################################
 ##################################################################

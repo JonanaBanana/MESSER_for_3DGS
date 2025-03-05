@@ -30,7 +30,7 @@ global main_path
 global transform_path
 global image_path
 global pcl_path
-main_path = '/home/jonathan/Reconstruction/windmill_full_stage/'
+main_path = '/home/jonathan/Reconstruction/windmill_stage/'
 transform_path = os.path.join(main_path,'transformations.csv')
 image_path = os.path.join(main_path,'input/')
 pcl_path = os.path.join(main_path,'pcd/')
@@ -69,7 +69,7 @@ class TimeSyncNode(Node):
         global image_path
         global pcl_path
         #converting pointcloud to open3d format
-        if i>15:
+        if i>80:
             pcl_data = rnp.numpify(pcl)
             flag1, pcd_out = self.Point_Cloud_Handler(pcl_data['xyz'])
             if flag1 == True:
@@ -153,11 +153,12 @@ class TimeSyncNode(Node):
 
         # filter out points outside the fov angles of the 
         ### Code for filtering points outside the fov of the camera
-        positive_mask = np.where((np.abs(theta_x) < (fov_x/2)*0.9) & (np.abs(theta_y)<(fov_y/2)*0.9) & (x<max_x) & (x > min_x)) #filtering mask
+        positive_mask = np.where((np.abs(theta_x) < (fov_x/2)*0.95) & (np.abs(theta_y)<(fov_y/2)*0.95) & (x<max_x) & (x > min_x)) #filtering mask
         _,M = np.shape(positive_mask)
         #print('positive_matches =',np.sum(positive_mask))
         pcd_out = o3d.geometry.PointCloud()
-        if M > 200:
+        if M > 600:
+            print('Found',M,'points!')
             #print('Good scan!')
             flag1 = True
             points = np.squeeze(points[positive_mask,:]) #filtered points
