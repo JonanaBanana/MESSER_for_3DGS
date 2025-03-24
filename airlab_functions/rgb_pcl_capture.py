@@ -26,11 +26,15 @@ global i
 i = 0
 global k
 k = 0
+global td
+td = 15
+global min_points
+min_points = 7000
 global main_path
 global transform_path
 global image_path
 global pcl_path
-main_path = '/home/jonathan/Reconstruction/windmill_stage/'
+main_path = '/home/jonathan/Reconstruction/test_stage_chessboard/'
 transform_path = os.path.join(main_path,'transformations.csv')
 image_path = os.path.join(main_path,'input/')
 pcl_path = os.path.join(main_path,'pcd/')
@@ -53,7 +57,7 @@ class TimeSyncNode(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
         
-        queue_size = 10
+        queue_size = 2
         max_delay = 0.01
         self.time_sync = ApproximateTimeSynchronizer([self.sub_rgb,self.sub_pcl],
                                                      queue_size, max_delay)
@@ -68,8 +72,9 @@ class TimeSyncNode(Node):
         global transform_path
         global image_path
         global pcl_path
+        global td
         #converting pointcloud to open3d format
-        if i>80:
+        if i>td:
             pcl_data = rnp.numpify(pcl)
             flag1, pcd_out = self.Point_Cloud_Handler(pcl_data['xyz'])
             if flag1 == True:
@@ -128,6 +133,7 @@ class TimeSyncNode(Node):
         i = i+1
         
     def Point_Cloud_Handler(self, points):
+        global min_points
         #("Processing Point Cloud data")
         ### Camera information and tra
         fx = 1108.5125 #focal lengths fx and fy, here they are the same 
@@ -157,7 +163,7 @@ class TimeSyncNode(Node):
         _,M = np.shape(positive_mask)
         #print('positive_matches =',np.sum(positive_mask))
         pcd_out = o3d.geometry.PointCloud()
-        if M > 600:
+        if M > min_points:
             print('Found',M,'points!')
             #print('Good scan!')
             flag1 = True

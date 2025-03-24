@@ -4,19 +4,12 @@ import csv
 import os
 import cv2
 from copy import deepcopy
-main_path = '/home/jonathan/Reconstruction/windmill_stage/'
+main_path = '/home/jonathan/Reconstruction/test_stage_chessboard/'
 transform_path = os.path.join(main_path,'transformations.csv')
 pcd_path = os.path.join(main_path,'pcd/')
 img_path = os.path.join(main_path,'input/')
 filtered_path = os.path.join(main_path,'filtered_mask/')
 out_path = os.path.join(main_path,'reconstructed.pcd')
-
-neighbors_3d = 10
-neighbors_pixel = 9
-factor_3d = 2
-factor_pixel = 1.2
-max_m3d = 0.7
-max_mpx = 14
 
 
 mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=2, origin=[0, 0, 0])
@@ -34,8 +27,10 @@ sim = True
 # with sim = True, the 10% edges of the image is discarded.
 
 # Enable to filter points in locations with high depth variance
-nearest_neighbor_filtering = True
-# Enable to filter points in image with large distance to nearest neighbors
+nearest_neighbor_filtering = False
+
+# Enable to display dark pixels in depth filter image (most useful in test environment with dark background)
+display_dark_pixels = False
 
 with open(transform_path, 'r') as file:
     reader = csv.reader(file)
@@ -77,6 +72,11 @@ for i in range(N):
         print("Processing pointcloud",i,'/',N)
     img = np.asarray(o3d.io.read_image(img_path+'/img_'+str(i)+'.jpg'))
     pcd = o3d.io.read_point_cloud(pcd_path+'/pcd_'+str(i)+'.pcd')
+    diameter = np.linalg.norm(np.asarray(pcd.get_max_bound()) - np.asarray(pcd.get_min_bound()))
+    camera = [0, 0, 0]
+    radius = diameter*250
+    _, pt_map = pcd.hidden_point_removal(camera, radius)
+    pcd = pcd.select_by_index(pt_map)
     pcd_2d = deepcopy(pcd)
     points = pcd.points
     r,_ = np.shape(points) #shape of filtered array
@@ -121,6 +121,7 @@ for i in range(N):
         pixel_data = np.column_stack((points_out_idx[:,0],points_out_idx[:,1]))
         data = np.hstack((pixel_data,depth_colored)).astype(int)
         circle_img = deepcopy(img)
+        circle_img = cv2.cvtColor(circle_img, cv2.COLOR_BGR2RGB) 
         for (x, y, r,g,b) in data:
             cv2.circle(circle_img, (x, y), 2, (int(b),int(g),int(r)), -1)
         
@@ -129,9 +130,8 @@ for i in range(N):
         pcd.colors = o3d.utility.Vector3dVector(colors_out)
         pcd_2d.points = o3d.utility.Vector3dVector(points_out_idx)
         pcd_2d.colors = o3d.utility.Vector3dVector(colors_out)
-        _, filter_3d = pcd.remove_statistical_outlier(nb_neighbors=10, std_ratio=2.0)
+        _, filter_3d = pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=1.0)
         _, filter_2d = pcd_2d.remove_radius_outlier(nb_points=20, radius=22)
-        print(np.shape(filter_2d))
         filter = np.intersect1d(filter_3d,filter_2d).astype(int)
         pcd_2d = pcd_2d.select_by_index(filter, invert=True)
         points_2d = np.asarray(pcd_2d.points)[:,:2].astype(int)
@@ -145,20 +145,23 @@ for i in range(N):
             cv2.circle(circle_img, (x, y), 5, (0,255,0), -1)
         cv2.imwrite(filtered_path+'/filtered_img_'+str(i)+'.jpg',circle_img)
 
-    intensity = np.mean(colors_out,axis=1)
-    dark_pixels = np.where(intensity<0.1)
-    _,K = np.shape(dark_pixels)
-    if K>0:
-        print('dark_pixels in pointcloud',i,':',K)
-        dark_pixel_idx = np.squeeze(points_out_idx[dark_pixels,:])
-        if K>1:
-            
-            dark_pixel_idx = dark_pixel_idx
-            for l in range(K):
-                cv2.circle(circle_img, (dark_pixel_idx[l,0], dark_pixel_idx[l,1]), 5, (0,0,255), -1)
-        else:
-            cv2.circle(circle_img, (dark_pixel_idx[0], dark_pixel_idx[1]), 5, (0,0,255), -1)
-        cv2.imwrite(filtered_path+'/filtered_img_'+str(i)+'.jpg',circle_img)
+    if display_dark_pixels == True:
+        intensity = np.mean(colors_out,axis=1)
+        dark_pixels = np.where(intensity<0.1)
+        _,K = np.shape(dark_pixels)
+        #temporary removal of dark pixels
+        K = 0
+        if K>0:
+            print('dark_pixels in pointcloud',i,':',K)
+            dark_pixel_idx = np.squeeze(points_out_idx[dark_pixels,:])
+            if K>1:
+                
+                dark_pixel_idx = dark_pixel_idx
+                for l in range(K):
+                    cv2.circle(circle_img, (dark_pixel_idx[l,0], dark_pixel_idx[l,1]), 5, (0,0,255), -1)
+            else:
+                cv2.circle(circle_img, (dark_pixel_idx[0], dark_pixel_idx[1]), 5, (0,0,255), -1)
+            cv2.imwrite(filtered_path+'/filtered_img_'+str(i)+'.jpg',circle_img)
     
     pcd_temp.points = o3d.utility.Vector3dVector(points_transformed_out)
     pcd_temp.colors = o3d.utility.Vector3dVector(colors_out)
@@ -174,7 +177,11 @@ for i in range(N):
     else:
          pcd_out.points.extend(pcd_temp.points)
          pcd_out.colors.extend(pcd_temp.colors)
-         
+print('filtering points...')
+_,ind= pcd_out.remove_statistical_outlier(nb_neighbors=10, std_ratio=1.2)
+pcd_out = pcd_out.select_by_index(ind)
+pcd_out = pcd_out.voxel_down_sample(voxel_size=0.04)    
+print('filtering done!')
 o3d.io.write_point_cloud(out_path,
                           pcd_out, write_ascii=True)
 print("Saved PCD!")

@@ -15,7 +15,7 @@ setup(
     zip_safe=True,
     maintainer='jonathan',
     maintainer_email='jonathan@todo.todo',
-    description='TODO: Package description',
+    description='A package for capturing and preparing data for gaussian splatting reconstruction without SfM from Colmap',
     license='Apache-2.0',
     tests_require=['pytest'],
     entry_points={
@@ -24,7 +24,9 @@ setup(
         'isaac_image_capture = airlab_functions.isaac_image_capture:main',
         'rgb_pcl_capture = airlab_functions.rgb_pcl_capture:main',
         'pc_repub = airlab_functions.pc_repub:main',
-        'rgb_pcl_viz = airlab_functions.rgb_pcl_visualizer:main'
+        'rgb_pcl_viz = airlab_functions.rgb_pcl_visualizer:main',
+        'image_transform_capture = airlab_functions.rgb_transf_capture:main',
+        'pointcloud_accumulator = airlab_functions.pointcloud_accumulator:main'
         ],
     },
 )

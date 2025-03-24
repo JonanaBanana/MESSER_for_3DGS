@@ -14,9 +14,9 @@ import struct
 ##################################################################
 ##################### DECLARE CONSTANTS ##########################
 ##################################################################
-voxel_size = 0.2
-min_x = 5 #min distance to keep points
-max_x = 60 #max distance to keep points
+voxel_size = 0.02
+min_x = 1 #min distance to keep points
+max_x = 200 #max distance to keep points
 f = 1108.5125019853992
 h = 720
 w = 1280
@@ -41,7 +41,7 @@ proj_mat = np.array([[f, 0, px, 0],
 #                                     [0.0, 0.0, 0.0, 1.0]]))
 
 # Paths
-main_path = '/home/jonathan/Reconstruction/windmill_stage'
+main_path = '/home/jonathan/Reconstruction/test_stage_chessboard'
 image_path = os.path.join(main_path,'input')
 pcd_path = os.path.join(main_path,'pcd')
 reconstructed_path = os.path.join(main_path,'reconstructed.pcd')
@@ -447,9 +447,7 @@ print("cameras.txt and cameras.bin created!")
 
 #read pointcloud
 pcd = o3d.io.read_point_cloud(reconstructed_path)
-print("voxel downsampling of pointcloud...")
-pcd = pcd.voxel_down_sample(voxel_size=voxel_size)
-#mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=2, origin=[0, 0, 0])
+mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=2, origin=[0, 0, 0])
 #o3d.visualization.draw_geometries([pcd,mesh_frame],zoom=0.3,
 #                                  front=[0., 0., -1.],
 #                                  lookat=[0., -2., 20],
@@ -500,9 +498,13 @@ for i in range(N):
     #                              up=[0., -1., 0.])
     diameter = np.linalg.norm(np.asarray(temp.get_max_bound()) - np.asarray(temp.get_min_bound()))
     camera = [0, 0, 0]
-    radius = diameter*8000
+    radius = diameter*600
     _, pt_map = temp.hidden_point_removal(camera, radius)
     temp = temp.select_by_index(pt_map)
+    #o3d.visualization.draw_geometries([temp,mesh_frame],zoom=0.3,
+    #                              front=[0., 0., -1.],
+    #                              lookat=[0, -2., 20],
+    #                              up=[0., -1., 0.])
     
     points = np.asarray(temp.points)
     colors = np.asarray(temp.colors)
