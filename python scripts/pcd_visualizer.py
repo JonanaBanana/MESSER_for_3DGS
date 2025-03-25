@@ -1,6 +1,27 @@
 import open3d as o3d
 import numpy as np
-pcd = o3d.io.read_point_cloud("/home/jonathan/Reconstruction/windmill_full_stage/reconstructed.pcd")
+transf_to_camera_frame = False
+
+trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
+                    [-1.0, 0.0, 0.0, 0.0],
+                    [0.0, -1.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0]])
+pcd = o3d.io.read_point_cloud("/home/jonathan/airlab-uav/src/FAST_LIO/PCD/scans.pcd")
+pcd.transform(np.linalg.inv(trans_mat))
+pcd_out = o3d.geometry.PointCloud()
+
+#if transf_to_camera_frame == True:
+#    points = np.asarray(pcd.points)
+#    r,_ = np.shape(points) #shape of filtered array
+
+    ### Code for projecting the point cloud onto the image plane ###
+#    extend_homogenous = np.ones((r,1)) #creating homogenous extender (r_new,1)
+
+#    points_homogenous = np.hstack((points,extend_homogenous)) #homogenous array (r_new,4)
+
+#    points_transformed = points_homogenous@np.linalg.inv(trans_mat).T #transforming array to camera frame
+#    points_transformed_out = points_transformed[:,:3] # discarding 4th dimension for visualization
+#    pcd.points = o3d.utility.Vector3dVector(points_transformed_out)
 #pcd_ds = pcd.uniform_down_sample(3)
 #pcd_ds = pcd_ds.farthest_point_down_sample(100000)
 #pcd_out = o3d.geometry.PointCloud()
@@ -20,8 +41,9 @@ pcd = o3d.io.read_point_cloud("/home/jonathan/Reconstruction/windmill_full_stage
 
 #o3d.io.write_point_cloud("/home/jonathan/PCDs/housing_gt_ds.pcd",
 #                         pcd_out, write_ascii=True)
+pcd_out.points = pcd.points
 mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=2, origin=[0, 0, 0])
-o3d.visualization.draw_geometries([pcd,mesh_frame],zoom=0.2,
+o3d.visualization.draw_geometries([pcd_out,mesh_frame],zoom=0.2,
                                   front=[0., 0., -1.],
                                   lookat=[0., -2., 20.],
                                   up=[0., -1., 0.])

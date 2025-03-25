@@ -25,8 +25,6 @@ global k
 k = 0
 global td
 td = 15
-global min_points
-min_points = 7000
 global main_path
 global transform_path
 global image_path
