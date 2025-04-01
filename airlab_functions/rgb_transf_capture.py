@@ -63,7 +63,7 @@ class ImageNode(Node):
         global image_path
         global td
         #converting pointcloud to open3d format
-        if i>td:
+        if i>=td:
             time = rclpy.time.Time(seconds=rgb.header.stamp.sec,nanoseconds=rgb.header.stamp.nanosec)
             from_frame_rel = self.target_frame
             to_frame_rel = 'camera_init'

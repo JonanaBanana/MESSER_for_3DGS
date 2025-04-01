@@ -21,33 +21,51 @@ trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
                     [0.0, 0.0, 0.0, 1.0]])
 ############################################################################
 
-
 global i
-i = 0
 global k
-k = 0
 global td
-td = 30
+global image_topic
+global odometry_topic
 global main_path
 global transform_path
 global image_path
-global pcl_path
+global queue_size
+global max_delay
+
+############################ Change These #########################
+image_topic = '/rgb'
+odometry_topic = '/Odometry'
 main_path = '/home/jonathan/Reconstruction/test_stage_windmill/'
+td = 30
+queue_size = 10
+max_delay = 0.1
+##################################################################
+
+####################### DO NOT CHANGE THESE ######################
+i = 0
+k = 0
 transform_path = os.path.join(main_path,'transformations.csv')
 image_path = os.path.join(main_path,'input/')
+##################################################################
+
 
 bridge = CvBridge()
+
+
 class ImageNode(Node):
+    global image_topic
+    global odometry_topic
+    global queue_size
+    global max_delay
+
     def __init__(self):
         super().__init__('image_saver')
         if not os.path.isdir(image_path):
             os.makedirs(image_path)
         
-        self.sub_rgb = Subscriber(self,Image,'/rgb')
-        self.sub_odom = Subscriber(self,Odometry,'/Odometry')
+        self.sub_rgb = Subscriber(self,Image,image_topic)
+        self.sub_odom = Subscriber(self,Odometry,odometry_topic)
         
-        queue_size = 10
-        max_delay = 0.1
         self.time_sync = ApproximateTimeSynchronizer([self.sub_rgb,self.sub_odom],
                                                      queue_size, max_delay)
         self.time_sync.registerCallback(self.SyncCallback)
@@ -81,7 +99,7 @@ class ImageNode(Node):
             #transf = transf@trans_mat
             try:
                 transf_out = np.vstack((transf_out,transf))
-                print("Caught synchronized rgd_pcl pair number %d!" %k)
+                print("Caught synchronized rgb-odometry pair number %d!" %k)
                 #print("Transform: " ,transf)
                 np.savetxt(transform_path, transf_out, delimiter=",")
             
