@@ -6,7 +6,7 @@ from copy import deepcopy
 
 
 ######################### CONSTANTS ###############################
-voxel_size = 0.08
+voxel_size = 0.15
 min_x = 1 #min distance to keep points
 max_x = 200 #max distance to keep points
 f = 1108.5125019853992
@@ -21,7 +21,7 @@ proj_mat = np.array([[f, 0, px, 0],
                     [0, f, py, 0],
                     [0, 0, 1, 0]])
 fast_lio = True
-viz = True
+viz = False
 #################################################################
 
 ########################## PATHS ################################
@@ -48,13 +48,13 @@ if fast_lio == True:
     pcd = o3d.geometry.PointCloud()
     pcd_fl = o3d.io.read_point_cloud(scans_path)
     pcd_fl = pcd_fl.voxel_down_sample(voxel_size=voxel_size)
-    pcd_fl = pcd_fl.voxel_down_sample(voxel_size=voxel_size)
     pcd_fl,_ = pcd_fl.remove_statistical_outlier(nb_neighbors=10,
                                                     std_ratio=2.0)
+    #pcd_fl.transform(np.linalg.inv(trans_mat))
     pcd.points = pcd_fl.points
     print("Saving voxel downsampled point cloud which is used for indexing")
     pcd_down_out = deepcopy(pcd)
-    pcd_down_out.transform(np.linalg.inv(trans_mat))
+    #pcd_down_out.transform(np.linalg.inv(trans_mat))
     o3d.io.write_point_cloud(downsampled_path, pcd_down_out, write_ascii=True)
 else:
     pcd = o3d.io.read_point_cloud(accumulated_path)
@@ -64,9 +64,13 @@ else:
 mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=2, origin=[0, 0, 0])
 if viz == True:
     o3d.visualization.draw_geometries([pcd_down_out,mesh_frame],zoom=0.2,
-                                    front=[0., 0., -1.],
-                                    lookat=[0., -2., 20],
-                                    up=[0., -1., 0.])
+                                    front=[-1., 0., 0.],
+                                    lookat=[20., 0., 0],
+                                    up=[0., 0., 1.])
+    #o3d.visualization.draw_geometries([pcd_down_out,mesh_frame],zoom=0.2,
+    #                                    front=[0., 0., -1.],
+    #                                    lookat=[0., -2., 20],
+    #                                    up=[0., -1., 0.])
 
 
 R,_ = np.shape(np.asarray(pcd.points))
@@ -96,11 +100,19 @@ for i in range(N):
     print(i,'/',N-1)
     colors = np.ones(np.shape(pcd.points))*0.1
     img = np.asarray(o3d.io.read_image(img_path+'/img_'+str(i)+'.jpg'))
-    q_transform = np.linalg.pinv(transform[i])
+    #q_transform = np.linalg.inv(trans_mat)@np.linalg.pinv(transform[i])
+    np.set_printoptions(suppress=True,precision=3)
+    print(transform[i])
+    q_transform = np.linalg.inv(transform[i]@trans_mat)
     temp = deepcopy(pcd)
     temp_point3d_id = deepcopy(point3d_id)
     temp.transform(q_transform)
-    temp.transform(np.linalg.inv(trans_mat))
+    #if viz == True:
+    #    o3d.visualization.draw_geometries([temp,mesh_frame],zoom=0.2,
+    #                                    front=[0., 0., -1.],
+    #                                    lookat=[0., -2., 20],
+    #                                    up=[0., -1., 0.])
+
     temp_points = np.asarray(temp.points)
     diameter = np.linalg.norm(np.asarray(temp.get_max_bound()) - np.asarray(temp.get_min_bound()))
     camera = [0, 0, 0]
@@ -158,12 +170,13 @@ for i in range(N):
         temp_list = np.hstack((temp_point3d_id,colors_proj))
         list_colors = np.vstack((list_colors,temp_list))
     temp.points = o3d.utility.Vector3dVector(points)
-    temp.colors = o3d.utility.Vector3dVector(colors)    
+    temp.colors = o3d.utility.Vector3dVector(colors)
+    temp.transform(q_transform)    
     if viz == True:
         o3d.visualization.draw_geometries([temp,mesh_frame],zoom=0.2,
-                                      front=[-1., 0., 0.],
-                                      lookat=[20., 0., 0],
-                                      up=[0., 0., 1.])
+                                        front=[0., 0., -1.],
+                                        lookat=[0., -2., 20],
+                                        up=[0., -1., 0.])
     print("Found "+str(M)+" points in image "+str(i))
 print("Saving point color information at: "+str(output_path))
 np.savetxt(output_path, list_colors, fmt=['%d','%.8f','%.8f','%.8f'], delimiter=",")

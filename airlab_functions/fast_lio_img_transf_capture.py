@@ -14,10 +14,12 @@ import numpy as np
 
 from scipy.spatial.transform import Rotation
 
-from tf2_ros import TransformException
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
-
+############# Transformation matrix from lidar to camera frame #############
+trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
+                    [-1.0, 0.0, 0.0, 0.0],
+                    [0.0, -1.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0]])
+############################################################################
 
 
 global i
@@ -25,12 +27,12 @@ i = 0
 global k
 k = 0
 global td
-td = 15
+td = 30
 global main_path
 global transform_path
 global image_path
 global pcl_path
-main_path = '/home/jonathan/Reconstruction/test_stage_chessboard_3/'
+main_path = '/home/jonathan/Reconstruction/test_stage_windmill/'
 transform_path = os.path.join(main_path,'transformations.csv')
 image_path = os.path.join(main_path,'input/')
 
@@ -76,6 +78,7 @@ class ImageNode(Node):
             transf = np.eye(4)
             transf[:3,:3]=r.as_matrix()
             transf[:3,3]=tf_t
+            #transf = transf@trans_mat
             try:
                 transf_out = np.vstack((transf_out,transf))
                 print("Caught synchronized rgd_pcl pair number %d!" %k)

@@ -14,7 +14,7 @@ import struct
 ##################################################################
 ##################### DECLARE CONSTANTS ##########################
 ##################################################################
-voxel_size = 0.02
+voxel_size = 0.15
 min_x = 1 #min distance to keep points
 max_x = 200 #max distance to keep points
 f = 1108.5125019853992
@@ -41,7 +41,7 @@ proj_mat = np.array([[f, 0, px, 0],
 #                                     [0.0, 0.0, 0.0, 1.0]]))
 
 # Paths
-main_path = '/home/jonathan/Reconstruction/test_stage_chessboard'
+main_path = '/home/jonathan/Reconstruction/test_stage_chessboard_3'
 image_path = os.path.join(main_path,'input')
 pcd_path = os.path.join(main_path,'pcd')
 reconstructed_path = os.path.join(main_path,'reconstructed.pcd')
@@ -55,6 +55,13 @@ points3D_txt_path = os.path.join(output_path,'points3D.txt')
 points3D_bin_path = os.path.join(output_path,'points3D.bin')
 if not os.path.isdir(output_path):
     os.makedirs(output_path)
+    
+############# Transformation matrix to camera frame #############
+trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
+                    [-1.0, 0.0, 0.0, 0.0],
+                    [0.0, -1.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0]])
+#################################################################
 
 
 ##################################################################
@@ -477,10 +484,9 @@ im_l1 = {}
 im_l2 = {}
 print("Processing images...")
 for i in range(N):
-    if i%10==0:
-        print(i,'/',N)
-    q_transform = np.linalg.pinv(transform[i])
-    #q_transform = np.matmul(transform[i],np.linalg.pinv(trans_mat))
+    print(i,'/',N)
+    q_transform = np.linalg.inv(transform[i]@trans_mat)
+    #q_transform = np.linalg.pinv(transform[i])
     t = q_transform[:3,3]
     tx = t[0]
     ty = t[1]
