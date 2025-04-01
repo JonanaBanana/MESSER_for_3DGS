@@ -6,7 +6,7 @@ trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
                     [-1.0, 0.0, 0.0, 0.0],
                     [0.0, -1.0, 0.0, 0.0],
                     [0.0, 0.0, 0.0, 1.0]])
-pcd = o3d.io.read_point_cloud("/home/jonathan/Reconstruction/test_stage_chessboard_3/reconstruction.pcd")
+pcd = o3d.io.read_point_cloud("/home/jonathan/Reconstruction/test_stage_chessboard_3/reconstructed.pcd")
 #pcd.transform(np.linalg.inv(trans_mat))
 pcd_out = o3d.geometry.PointCloud()
 
