@@ -9,16 +9,17 @@ from copy import deepcopy
 voxel_size = 0.15
 min_x = 1 #min distance to keep points
 max_x = 200 #max distance to keep points
-f = 1108.5125019853992
+fx = 1108.5125019853992
+fy = 1108.5125019853992
 h = 720
 w = 1280
 px = 640
 py = 360
-fov_x = 2*np.arctan2(w,(2*f))
-fov_y = 2*np.arctan2(h,(2*f))
+fov_x = 2*np.arctan2(w,(2*fx))
+fov_y = 2*np.arctan2(h,(2*fy))
 #projection matrix to project 3d points to image plane
-proj_mat = np.array([[f, 0, px, 0],
-                    [0, f, py, 0],
+proj_mat = np.array([[fx, 0, px, 0],
+                    [0, fy, py, 0],
                     [0, 0, 1, 0]])
 fast_lio = True
 viz = False
@@ -26,7 +27,6 @@ viz = False
 
 ########################## PATHS ################################
 main_path = '/home/jonathan/Reconstruction/test_stage_chessboard_3'
-image_path = os.path.join(main_path,'input')
 pcd_path = os.path.join(main_path,'pcd')
 img_path = os.path.join(main_path,'input/')
 accumulated_path = os.path.join(main_path,'pcd/accumulated_point_cloud.pcd')
@@ -80,7 +80,7 @@ print("Created 3D point indexing, found ",R,'points!')
 
 #Determine number of images
 k = 0
-for file in os.listdir(image_path):
+for file in os.listdir(img_path):
     k = k+1    
 print('Found ', k,'images!')
 

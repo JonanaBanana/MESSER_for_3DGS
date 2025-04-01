@@ -6,11 +6,7 @@ from copy import deepcopy
 
 ########################## PATHS ################################
 main_path = '/home/jonathan/Reconstruction/test_stage_chessboard_3'
-image_path = os.path.join(main_path,'input')
-pcd_path = os.path.join(main_path,'pcd')
-img_path = os.path.join(main_path,'input/')
 downsampled_path = os.path.join(main_path,'downsampled_point_cloud.pcd')
-transform_path = os.path.join(main_path,'transformations.csv')
 csv_path = os.path.join(main_path,'point_cloud_color_information.csv')
 out_path = os.path.join(main_path,'reconstructed.pcd')
 #################################################################
