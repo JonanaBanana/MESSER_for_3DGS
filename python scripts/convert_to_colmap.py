@@ -17,17 +17,16 @@ import struct
 voxel_size = 0.15
 min_x = 1 #min distance to keep points
 max_x = 200 #max distance to keep points
-fx = 1108.5125019853992
-fy = 1108.5125019853992
+f = 1108.5125019853992
 h = 720
 w = 1280
 px = 640
 py = 360
-fov_x = 2*np.arctan2(w,(2*fx))
-fov_y = 2*np.arctan2(h,(2*fy))
+fov_x = 2*np.arctan2(w,(2*f))
+fov_y = 2*np.arctan2(h,(2*f))
 #projection matrix to project 3d points to image plane
-proj_mat = np.array([[fx, 0, px, 0],
-                    [0, fy, py, 0],
+proj_mat = np.array([[f, 0, px, 0],
+                    [0, f, py, 0],
                     [0, 0, 1, 0]])
 
 #rotation around y axis due to camera frame issue in IsaacSim
@@ -42,7 +41,7 @@ proj_mat = np.array([[fx, 0, px, 0],
 #                                     [0.0, 0.0, 0.0, 1.0]]))
 
 # Paths
-main_path = '/home/jonathan/Reconstruction/test_stage_chessboard_3'
+main_path = '/home/jonathan/Reconstruction/test_stage_chessboard_4'
 image_path = os.path.join(main_path,'input')
 pcd_path = os.path.join(main_path,'pcd')
 reconstructed_path = os.path.join(main_path,'reconstructed.pcd')

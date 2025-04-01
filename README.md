@@ -67,7 +67,7 @@ In `airlab_functions/python_scripts` run `generate_color_list.py`
 - voxel_size: the size of voxels used for voxel downsampling. Voxel-downsampling is important as too many points will cause an overload of VRAM usage in gaussian splatting, so if that is an issue, increase this parameter.
 - min_x: the minimum distance of points to be considered for points seen in an image.
 - max_x: same as above but maximum distance.
-- fx, fy, px, py, h, w: all of these are part of the camera intrinsics, so either find the ones relevant to your camera model or determine them using other methods.
+- f, px, py, h, w: all of these are part of the camera intrinsics, so either find the ones relevant to your camera model or determine them using other methods.
 - viz: Change to True to see visualization along the way. **This will block the code while visualizing**
 - main_path: Change to the main directory used by fast_lio_img_transf_capture.py
 
@@ -94,11 +94,13 @@ In `airlab_functions/python_scripts` run `convert_to_colmap.py`
 - voxel_size: should be the same value as before.
 - min_x: the minimum distance of points to be considered for points seen in an image.
 - max_x: same as above but maximum distance.
-- fx, fy, px, py, h, w: all of these are part of the camera intrinsics, so either find the ones relevant to your camera model or determine them using other methods.
+- f, px, py, h, w: all of these are part of the camera intrinsics, so either find the ones relevant to your camera model or determine them using other methods.
 - main_path: Change to the main directory used by the other scripts
 
 _No other variables should need to be changed_
 **This might take a long time to run! Progress should be printed**
+
+**Note:** This assumes that all images are taken using the same camera so only one camera model is needed. In case this is not true, the code needs to be changed according to colmaps output format of cameras.txt in their github.io
 
 ### Step 7:
 
