@@ -72,7 +72,8 @@ In `airlab_functions/python_scripts` run `generate_color_list.py`
 - main_path: Change to the main directory used by fast_lio_img_transf_capture.py
 
 _No other variables should need to be changed_
-**This might take a long time to run! Progress should be printed**
+
+**This might take a long time to run!**
 
 ### Step 5:
 
@@ -83,7 +84,8 @@ In `airlab_functions/python_scripts` run `color_point_cloud.py`
 - main_path: Change this to the main directory used by the other scripts.
 
 _No other variables should need to be changed_
-**This might take a long time to run! Progress should be printed**
+
+**This might take a long time to run!**
 
 ### Step 6:
 
@@ -98,7 +100,8 @@ In `airlab_functions/python_scripts` run `convert_to_colmap.py`
 - main_path: Change to the main directory used by the other scripts
 
 _No other variables should need to be changed_
-**This might take a long time to run! Progress should be printed**
+
+**This might take a long time to run!**
 
 **Note:** This assumes that all images are taken using the same camera so only one camera model is needed. In case this is not true, the code needs to be changed according to colmaps output format of cameras.txt in their github.io
 
