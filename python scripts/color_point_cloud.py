@@ -5,7 +5,7 @@ import os
 from copy import deepcopy
 
 ########################## PATHS ################################
-main_path = '/home/jonathan/Reconstruction/test_stage_chessboard_4'
+main_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom'
 downsampled_path = os.path.join(main_path,'downsampled_point_cloud.pcd')
 csv_path = os.path.join(main_path,'point_cloud_color_information.csv')
 out_path = os.path.join(main_path,'reconstructed.pcd')
@@ -29,8 +29,6 @@ colors_list = data_list[:,1:].astype(float)
 R,_ = np.shape(np.asarray(pcd.points))
 print("Found ",R,'points in point cloud')
 visible_idx = np.sort(np.unique(idx_list))
-print(np.min(visible_idx))
-print(np.max(visible_idx))
 M = np.shape(np.asarray(visible_idx))[0]
 print("Visible points from images:",M)
 points_out = points[visible_idx,:]

@@ -41,7 +41,7 @@ proj_mat = np.array([[f, 0, px, 0],
 #                                     [0.0, 0.0, 0.0, 1.0]]))
 
 # Paths
-main_path = '/home/jonathan/Reconstruction/test_stage_chessboard_4'
+main_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom'
 image_path = os.path.join(main_path,'input')
 pcd_path = os.path.join(main_path,'pcd')
 reconstructed_path = os.path.join(main_path,'reconstructed.pcd')

@@ -6,7 +6,7 @@ from copy import deepcopy
 
 
 ######################### CONSTANTS ###############################
-voxel_size = 0.15
+voxel_size = 0.2
 min_x = 1 #min distance to keep points
 max_x = 200 #max distance to keep points
 f = 1108.5125019853992
@@ -25,7 +25,7 @@ viz = False
 #################################################################
 
 ########################## PATHS ################################
-main_path = '/home/jonathan/Reconstruction/test_stage_chessboard_4'
+main_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom'
 pcd_path = os.path.join(main_path,'pcd')
 img_path = os.path.join(main_path,'input/')
 accumulated_path = os.path.join(main_path,'pcd/accumulated_point_cloud.pcd')
@@ -48,7 +48,7 @@ if fast_lio == True:
     pcd_fl = o3d.io.read_point_cloud(scans_path)
     pcd_fl = pcd_fl.voxel_down_sample(voxel_size=voxel_size)
     pcd_fl,_ = pcd_fl.remove_statistical_outlier(nb_neighbors=10,
-                                                    std_ratio=2.0)
+                                                    std_ratio=1.5)
     #pcd_fl.transform(np.linalg.inv(trans_mat))
     pcd.points = pcd_fl.points
     print("Saving voxel downsampled point cloud which is used for indexing")

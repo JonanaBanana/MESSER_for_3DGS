@@ -6,7 +6,8 @@ trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
                     [-1.0, 0.0, 0.0, 0.0],
                     [0.0, -1.0, 0.0, 0.0],
                     [0.0, 0.0, 0.0, 1.0]])
-pcd = o3d.io.read_point_cloud("/home/jonathan/Reconstruction/test_stage_chessboard_3/reconstructed.pcd")
+pcd = o3d.io.read_point_cloud("/home/jonathan/Reconstruction/test_stage_windmill_custom/scans.pcd")
+pcd = pcd.voxel_down_sample(voxel_size=0.1)
 #pcd.transform(np.linalg.inv(trans_mat))
 pcd_out = o3d.geometry.PointCloud()
 
@@ -44,6 +45,6 @@ pcd_out = o3d.geometry.PointCloud()
 pcd_out.points = pcd.points
 mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=2, origin=[0, 0, 0])
 o3d.visualization.draw_geometries([pcd_out,mesh_frame],zoom=0.2,
-                                  front=[0., 0., -1.],
-                                  lookat=[0., -2., 20.],
-                                  up=[0., -1., 0.])
+                                  front=[-1., 0., 0.],
+                                  lookat=[10., -2., 0.],
+                                  up=[0., 0., 1.])

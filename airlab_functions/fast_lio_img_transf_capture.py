@@ -35,10 +35,10 @@ global max_delay
 ############################ Change These #########################
 image_topic = '/rgb'
 odometry_topic = '/Odometry'
-main_path = '/home/jonathan/Reconstruction/test_stage_windmill/'
-td = 30
-queue_size = 10
-max_delay = 0.1
+main_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom'
+td = 30  
+queue_size = 1
+max_delay = 0.01
 ##################################################################
 
 ####################### DO NOT CHANGE THESE ######################
