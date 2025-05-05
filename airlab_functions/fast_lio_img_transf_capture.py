@@ -14,15 +14,9 @@ import numpy as np
 
 from scipy.spatial.transform import Rotation
 
-############# Transformation matrix from lidar to camera frame #############
-trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
-                    [-1.0, 0.0, 0.0, 0.0],
-                    [0.0, -1.0, 0.0, 0.0],
-                    [0.0, 0.0, 0.0, 1.0]])
-############################################################################
-
 global i
 global k
+global simy
 global td
 global image_topic
 global odometry_topic
@@ -31,14 +25,31 @@ global transform_path
 global image_path
 global queue_size
 global max_delay
+global invert_image
 
 ############################ Change These #########################
 image_topic = '/rgb'
 odometry_topic = '/Odometry'
-main_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom'
-td = 30  
-queue_size = 1
-max_delay = 0.01
+main_path = '/home/jonathan/Reconstruction/test_stage_warehouse_custom'  
+
+invert_image = False
+sim = True
+
+if sim == False:
+    td = 2
+    queue_size = 100
+    max_delay = 10
+    image_topic = '/camera/color/image_raw'
+    odometry_topic = '/Odometry'
+
+    
+else:
+    td = 8
+    queue_size = 10
+    max_delay = 0.1
+    image_topic = '/rgb'
+    odometry_topic = '/Odometry'
+
 ##################################################################
 
 ####################### DO NOT CHANGE THESE ######################
@@ -78,10 +89,9 @@ class ImageNode(Node):
         global transf_out
         global image_path
         global td
+        global invert_image
         #converting pointcloud to open3d format
         if i>td:
-            cv_rgb = bridge.imgmsg_to_cv2(rgb, desired_encoding='bgr8')
-            cv2.imwrite(image_path + 'img_' + str(k) + '.jpg',cv_rgb)
             position_x = odom.pose.pose.position.x
             position_y = odom.pose.pose.position.y
             position_z = odom.pose.pose.position.z
@@ -96,7 +106,6 @@ class ImageNode(Node):
             transf = np.eye(4)
             transf[:3,:3]=r.as_matrix()
             transf[:3,3]=tf_t
-            #transf = transf@trans_mat
             try:
                 transf_out = np.vstack((transf_out,transf))
                 print("Caught synchronized rgb-odometry pair number %d!" %k)
@@ -113,7 +122,21 @@ class ImageNode(Node):
             #saving point cloud
             #saving rgb image and pointcloud
             cv_rgb = bridge.imgmsg_to_cv2(rgb, desired_encoding='bgr8')
-            cv2.imwrite(image_path + 'img_' + str(k) + '.jpg',cv_rgb)
+            if invert_image == True:
+                cv_rgb = cv2.rotate(cv_rgb, cv2.ROTATE_180)
+                
+            if k >= 10:
+                im_string = '/img_000' + str(k) + '.jpg'
+                if k >= 100:
+                    im_string = '/img_00' + str(k) + '.jpg'
+                    if k >= 1000:
+                        im_string = '/img_0' + str(k) + '.jpg'
+                        if k >= 10000:
+                            im_string = '/img_' + str(k) + '.jpg'
+            else:
+                im_string = '/img_0000' + str(k) + '.jpg'
+                
+            cv2.imwrite(image_path + im_string,cv_rgb)
         
             k = k+1
             i = 0

@@ -5,7 +5,7 @@ import os
 from copy import deepcopy
 
 ########################## PATHS ################################
-main_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom'
+main_path = '/home/jonathan/Reconstruction/test_stage_warehouse_custom'
 downsampled_path = os.path.join(main_path,'downsampled_point_cloud.pcd')
 csv_path = os.path.join(main_path,'point_cloud_color_information.csv')
 out_path = os.path.join(main_path,'reconstructed.pcd')
@@ -25,7 +25,12 @@ with open(csv_path, 'r') as file:
 data_list = np.array(data_list)
 data_list = np.reshape(data_list,(-1,4))
 idx_list = data_list[:,0].astype(int)
+sorter_idx = np.argsort(idx_list)
+idx_list = idx_list[sorter_idx]
+L = np.squeeze(np.shape(idx_list))
+print('Total input data points: ',L)
 colors_list = data_list[:,1:].astype(float)
+colors_list = colors_list[sorter_idx,:]
 R,_ = np.shape(np.asarray(pcd.points))
 print("Found ",R,'points in point cloud')
 visible_idx = np.sort(np.unique(idx_list))
@@ -37,16 +42,35 @@ colors_out = np.zeros((R,3))
 print('colors_out:',np.shape(colors_out))
 print("Generating color for each point cloud")
 i = 0
+
 for idx in visible_idx:
-    i = i+1
-    if i%1000 == 0:
-        print("Progress: "+str(i)+"/"+str(M))
-    present_colors_idx = np.where(idx_list == idx)
-    K = np.shape(np.asarray(present_colors_idx))[1]
-    colors = colors_list[present_colors_idx]
-    colors = np.sort(colors, axis=0, kind='mergesort')
-    colors = np.median(colors,axis=0)
-    colors_out[idx,:] = colors
+        flag = 1
+        colors = np.empty((0,3))
+        while flag==1:
+            if i<L:
+                if idx_list[i] == idx:
+                    colors = np.append(colors,np.expand_dims(colors_list[i,:],axis=0),axis=0)
+                    i = i+1
+                    if i%100000 == 0:
+                        print("Progress: "+str(i)+"/"+str(L))
+                else:
+                    colors = np.sort(colors, axis=0, kind='mergesort')
+                    colors = np.median(colors,axis=0)
+                    colors_out[idx,:] = colors
+                    flag=0
+            else:
+                break
+    
+    
+    #i = i+1
+    #if i%1000 == 0:
+    #    print("Progress: "+str(i)+"/"+str(M))
+    #present_colors_idx = np.where(idx_list == idx)
+    #K = np.shape(np.asarray(present_colors_idx))[1]
+    #colors = colors_list[present_colors_idx]
+    #colors = np.sort(colors, axis=0, kind='mergesort')
+    #colors = np.median(colors,axis=0)
+    #colors_out[idx,:] = colors
 
 colors_out = colors_out[visible_idx,:]
 pcd.points = o3d.utility.Vector3dVector(points_out)

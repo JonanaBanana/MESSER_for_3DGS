@@ -1,22 +1,19 @@
-import pycolmap as cm
 import numpy as np
 import open3d as o3d
-import matplotlib.pyplot as plt
 import csv
 import os
-from pyquaternion import Quaternion
 from copy import deepcopy
+import sqlite3
+import pycolmap as cm
+import matplotlib.pyplot as plt
+from pyquaternion import Quaternion
 from itertools import chain
 import argparse
 import collections
 import struct
 
-##################################################################
-##################### DECLARE CONSTANTS ##########################
-##################################################################
-voxel_size = 0.15
-min_x = 1 #min distance to keep points
-max_x = 200 #max distance to keep points
+fast_lio = True
+viz = True
 sim = False
 
 if sim == True:
@@ -32,52 +29,37 @@ else:
     w = 640
     px = 320
     py = 245
-    
-fov_x = 2*np.arctan2(w,(2*f))
-fov_y = 2*np.arctan2(h,(2*f))
-proj_mat = np.array([[f, 0, px, 0],
-                [0, f, py, 0],
-                [0, 0, 1, 0]])
 
-#rotation around y axis due to camera frame issue in IsaacSim
-#transform_out = np.array([[-1.0, -0.0, 0.0, 0.0],   
-#                          [0.0, 1.0, 0.0, 0.0],   
-#                          [0.0, 0.0, -1.0, 0.0],   
-#                          [0.0, 0.0, 0.0, 1.0]])
-#transformation matrix to transform between world and camera frame
-#trans_mat = np.linalg.pinv(np.array([[0.0, 0.0, 1.0, 0.0],
-#                                     [-1.0, 0.0, 0.0, 0.0],
-#                                     [0.0, -1.0, 0.0, 0.0],
-#                                     [0.0, 0.0, 0.0, 1.0]]))
 
-# Paths
-main_path = '/home/jonathan/Reconstruction/outdoor_windmill_custom'
+#################################################################
+
+########################## PATHS ################################
+main_path = '/home/jonathan/Reconstruction/test_custom_colmap'
 image_path = os.path.join(main_path,'input')
 pcd_path = os.path.join(main_path,'pcd')
 reconstructed_path = os.path.join(main_path,'reconstructed.pcd')
 transform_path = os.path.join(main_path,'transformations.csv')
-output_path = os.path.join(main_path,'distorted/sparse/0')
+output_path = os.path.join(main_path,'sparse/0')
+
+
 cameras_txt_path = os.path.join(output_path,'cameras.txt')
 cameras_bin_path = os.path.join(output_path,'cameras.bin')
 images_txt_path = os.path.join(output_path,'images.txt')
 images_bin_path = os.path.join(output_path,'images.bin')
 points3D_txt_path = os.path.join(output_path,'points3D.txt')
 points3D_bin_path = os.path.join(output_path,'points3D.bin')
+
 if not os.path.isdir(output_path):
     os.makedirs(output_path)
-    
+
+#################################################################
+
 ############# Transformation matrix to camera frame #############
 trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
                     [-1.0, 0.0, 0.0, 0.0],
                     [0.0, -1.0, 0.0, 0.0],
                     [0.0, 0.0, 0.0, 1.0]])
 #################################################################
-
-
-##################################################################
-##################################################################
-##################################################################
-
 
 ##################################################################
 ########### FUNCTIONS FROM COLMAP read_write_model.py ############
@@ -430,11 +412,6 @@ def convert_to_colmap_points3D(p3d,N):
     return points3D
 
 ##################################################################
-##################################################################
-##################################################################
-
-
-##################################################################
 ######################### WRITE camera.txt #######################
 ##################################################################
 #camera.txt
@@ -444,13 +421,11 @@ def convert_to_colmap_points3D(p3d,N):
 camera_list = [1, "SIMPLE_PINHOLE", w, h, f, px, py]
 cameras = convert_to_colmap_camera(camera_list)
 write_cameras_text(cameras, cameras_txt_path)
-write_cameras_binary(cameras, cameras_bin_path)
 print("cameras.txt and cameras.bin created!")
 
 ##################################################################
 ##################################################################
 ##################################################################
-
 
 ##################################################################
 ######################### WRITE images.txt #######################
@@ -459,17 +434,6 @@ print("cameras.txt and cameras.bin created!")
 #   IMAGE_ID, QW, QX, QY, QZ, TX, TY, TZ, CAMERA_ID, NAME
 #   POINTS2D[] as (X, Y, POINT3D_ID)
 # Number of images: 2, mean observations per image: 2
-
-#read pointcloud
-pcd = o3d.io.read_point_cloud(reconstructed_path)
-mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=2, origin=[0, 0, 0])
-#o3d.visualization.draw_geometries([pcd,mesh_frame],zoom=0.3,
-#                                  front=[0., 0., -1.],
-#                                  lookat=[0., -2., 20],
-#                                  up=[0., -1., 0.])
-R,_ = np.shape(np.asarray(pcd.points))
-point3d_id = np.linspace(0,R-1,R).astype(int)
-print("Created 3D point indexing, found ",R,'points!')
 
 #Determine number of images
 k = 0
@@ -504,59 +468,6 @@ for i in range(N):
     qx = q[1]
     qy = q[2]
     qz = q[3]
-    temp = deepcopy(pcd)
-    temp.transform(q_transform)
-    #o3d.visualization.draw_geometries([temp,mesh_frame],zoom=0.3,
-    #                              front=[0., 0., -1.],
-    #                              lookat=[0, -2., 20],
-    #                              up=[0., -1., 0.])
-    diameter = np.linalg.norm(np.asarray(temp.get_max_bound()) - np.asarray(temp.get_min_bound()))
-    camera = [0, 0, 0]
-    radius = diameter*600
-    _, pt_map = temp.hidden_point_removal(camera, radius)
-    temp = temp.select_by_index(pt_map)
-    #o3d.visualization.draw_geometries([temp,mesh_frame],zoom=0.3,
-    #                              front=[0., 0., -1.],
-    #                              lookat=[0, -2., 20],
-    #                              up=[0., -1., 0.])
-    
-    points = np.asarray(temp.points)
-    colors = np.asarray(temp.colors)
-    temp_point3d_id = deepcopy(point3d_id)
-    temp_point3d_id = np.squeeze(temp_point3d_id[pt_map])
-    r_p,_ = np.shape(points)
-
-    #Initial masking
-    x = points[:,0] #3dimensional decomposition of lidar points
-    y = points[:,1]
-    z = points[:,2]
-
-    #determining angle of each beam in pointcloud both horizontal and vertical angle
-    theta_x = np.arctan2(x,z) #2d angles of points correlating to angles of image pixels
-    theta_y = np.arctan2(-y,z)
-
-    # filter out points outside the fov angles of the 
-    ### Code for filtering points outside the fov of the camera
-    positive_mask = np.where((np.abs(theta_x) < (fov_x/2)) & (np.abs(theta_y)<(fov_y/2)) & (z<max_x) & (z > min_x)) #filtering mask
-    points = np.squeeze(points[positive_mask,:]) #filtered points
-    colors = np.squeeze(colors[positive_mask,:])
-    temp_point3d_id = np.squeeze(temp_point3d_id[positive_mask])
-    ### Code for projecting the point cloud onto the image plane ###
-    r_new,_ = np.shape(points) #shape of filtered array
-    extend_homogenous = np.ones((r_new,1)) #creating homogenous extender (r_new,1)
-
-    points_homogenous = np.hstack((points,extend_homogenous)) #homogenous array (r_new,4)
-
-    points_proj = points_homogenous@proj_mat.T #initial projection of points to image plane
-    x = np.divide(points_proj[:,0],points_proj[:,2]) #normalizing to fit with image size
-    y = np.divide(points_proj[:,1],points_proj[:,2])
-    z = extend_homogenous
-    points_out = np.column_stack((x,y,z)) # extending array to 3d to visualize as pointcloud (not necessary)
-    positive_mask = np.where((points_out[:,0] < w) & (points_out[:,1] < h) & (points_out[:,0] > 0) &(points_out[:,1] > 0) ) #filtering mask
-
-    points_out = np.squeeze(points_out[positive_mask,:])
-    colors_out = np.squeeze(colors[positive_mask,:])
-    temp_point3d_id = np.squeeze(temp_point3d_id[positive_mask])
     #   IMAGE_ID, QW, QX, QY, QZ, TX, TY, TZ, CAMERA_ID, NAME
     #   POINTS2D[] as (X, Y, POINT3D_ID)
     #create line 1 of image_N in image.txt
@@ -570,45 +481,25 @@ for i in range(N):
                     im_string = 'img_' + str(i) + '.jpg'
     else:
         im_string = 'img_0000' + str(i) + '.jpg'
-    
     im_l1[i] = [i+1,qw,qx,qy,qz,tx,ty,tz,1,im_string]
-    im_l2[i] = list(chain.from_iterable(zip(points_out[:,0],points_out[:,1],temp_point3d_id.astype(int))))
+    im_l2[i] = []
 images = convert_to_colmap_images(im_l1,im_l2,N)
 
 write_images_text(images, images_txt_path)
-write_images_binary(images, images_bin_path)
 print("images.txt and images.bin created!")
 
 ##################################################################
 ##################################################################
 ##################################################################
 
-
 ##################################################################
 ######################### WRITE points3D.txt #####################
 ##################################################################
 # 3D point list with one line of data per point:
 #   POINT3D_ID, X, Y, Z, R, G, B, ERROR, TRACK[] as (IMAGE_ID, POINT2D_IDX)
-# Number of points: 3, mean track length: 3.3334
-p3d = {}
-points = np.asarray(pcd.points)
-colors = np.asarray(pcd.colors)
-p_x = points[:,0]
-p_y = points[:,1]
-p_z = points[:,2]
-c_r = colors[:,0]
-c_g = colors[:,1]
-c_b = colors[:,2]
-error = 1.0
-track = [0, 0]
-print('Processing Points...')
-for i in range(R):
-    id = point3d_id[i]
-    p3d[i] = [point3d_id[i], p_x[i],p_y[i],p_z[i],c_r[i],c_g[i],c_b[i], error, 0, 0 ]
-    
-points3D = convert_to_colmap_points3D(p3d,R)
-write_points3D_text(points3D, points3D_txt_path)
-write_points3D_binary(points3D, points3D_bin_path)
+# Number of points: 3, mean track length: 3.3334  
+with open(points3D_txt_path, 'w') as f:
+    pass
 print("points3D.txt and points3D.bin created!")
 
 ##################################################################

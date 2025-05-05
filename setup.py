@@ -27,7 +27,8 @@ setup(
         'rgb_pcl_viz = airlab_functions.rgb_pcl_visualizer:main',
         'image_transform_capture = airlab_functions.rgb_transf_capture:main',
         'pointcloud_accumulator = airlab_functions.pointcloud_accumulator:main',
-        'fast_lio_capture = airlab_functions.fast_lio_img_transf_capture:main'
+        'fast_lio_capture = airlab_functions.fast_lio_img_transf_capture:main',
+        'subscriber = airlab_functions.subscriber:main'
         ],
     },
 )

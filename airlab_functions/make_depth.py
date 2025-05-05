@@ -3,45 +3,36 @@ import open3d as o3d
 import csv
 import os
 from copy import deepcopy
+import matplotlib.pyplot as plt
+import cv2 as cv
 
-sim = True
-fast_lio = True
-viz = False
 
 ######################### CONSTANTS ###############################
-voxel_size = 0.2
+voxel_size = 0.1
 min_x = 1 #min distance to keep points
 max_x = 200 #max distance to keep points
-if sim == True:
-    f = 1108.5125019853992
-    h = 720
-    w = 1280
-    px = 640
-    py = 360
-else:
-    f = 372
-    h = 480
-    w = 640
-    px = 314
-    py = 238
-
+f = 1108.5125019853992
+h = 720
+w = 1280
+px = 640
+py = 360
 fov_x = 2*np.arctan2(w,(2*f))
 fov_y = 2*np.arctan2(h,(2*f))
 #projection matrix to project 3d points to image plane
 proj_mat = np.array([[f, 0, px, 0],
                     [0, f, py, 0],
                     [0, 0, 1, 0]])
+viz = True
 #################################################################
 
 ########################## PATHS ################################
-main_path = '/home/jonathan/Reconstruction/test_stage_cylinder_custom'
+main_path = '/home/jonathan/Reconstruction/test_stage_warehouse_custom'
 pcd_path = os.path.join(main_path,'pcd')
 img_path = os.path.join(main_path,'input/')
-accumulated_path = os.path.join(main_path,'pcd/accumulated_point_cloud.pcd')
-downsampled_path = os.path.join(main_path,'downsampled_point_cloud.pcd')
 scans_path = os.path.join(main_path,'scans.pcd')
 transform_path = os.path.join(main_path,'transformations.csv')
-output_path = os.path.join(main_path,'point_cloud_color_information.csv')
+depth_path = os.path.join(main_path,'depth_images')
+depth_json_path = os.path.join(main_path,'depth_params.json')
 #################################################################
 
 ############# Transformation matrix to camera frame #############
@@ -52,34 +43,22 @@ trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
 #################################################################
 
 #read pointcloud
-if fast_lio == True:
-    pcd = o3d.geometry.PointCloud()
-    pcd_fl = o3d.io.read_point_cloud(scans_path)
-    pcd_fl.remove_non_finite_points()
-    pcd_fl = pcd_fl.voxel_down_sample(voxel_size=voxel_size)
-    pcd_fl,_ = pcd_fl.remove_statistical_outlier(nb_neighbors=10,
-                                                    std_ratio=1.5)
-    #pcd_fl.transform(np.linalg.inv(trans_mat))
-    pcd.points = pcd_fl.points
-    print("Saving voxel downsampled point cloud which is used for indexing")
-    pcd_down_out = deepcopy(pcd)
-    #pcd_down_out.transform(np.linalg.inv(trans_mat))
-    o3d.io.write_point_cloud(downsampled_path, pcd_down_out, write_ascii=True)
-else:
-    pcd = o3d.io.read_point_cloud(accumulated_path)
-    pcd = pcd.voxel_down_sample(voxel_size=voxel_size)
-    print("Saving voxel downsampled point cloud which is used for indexing")
-    o3d.io.write_point_cloud(downsampled_path, pcd, write_ascii=True)
-mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.5, origin=[0, 0, 0])
+pcd = o3d.geometry.PointCloud()
+pcd_fl = o3d.io.read_point_cloud(scans_path)
+pcd_fl.remove_non_finite_points()
+pcd_fl = pcd_fl.voxel_down_sample(voxel_size=voxel_size)
+pcd_fl,_ = pcd_fl.remove_statistical_outlier(nb_neighbors=10,
+                                                std_ratio=1.5)
+pcd.points = pcd_fl.points
+pcd_down_out = deepcopy(pcd)
+
+
+mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1, origin=[0, 0, 0])
 if viz == True:
-    o3d.visualization.draw_geometries([pcd_down_out,mesh_frame],zoom=0.1,
+    o3d.visualization.draw_geometries([pcd_down_out,mesh_frame],zoom=0.2,
                                     front=[-1., 0., 0.],
-                                    lookat=[20., 0., 0],
+                                    lookat=[0., 0., 0],
                                     up=[0., 0., 1.])
-    #o3d.visualization.draw_geometries([pcd_down_out,mesh_frame],zoom=0.2,
-    #                                    front=[0., 0., -1.],
-    #                                    lookat=[0., -2., 20],
-    #                                    up=[0., -1., 0.])
 
 
 R,_ = np.shape(np.asarray(pcd.points))
@@ -107,7 +86,7 @@ print("Found",N,'transforms!')
 print("Processing images...")
 for i in range(N):
     print(i,'/',N-1)
-    colors = np.ones(np.shape(pcd.points))*0.1
+    
     if i >= 10:
         im_string = 'img_000' + str(i) + '.jpg'
         if i >= 100:
@@ -118,22 +97,16 @@ for i in range(N):
                     im_string = 'img_' + str(i) + '.jpg'
     else:
         im_string = 'img_0000' + str(i) + '.jpg'
+        
+        
     img = np.asarray(o3d.io.read_image(img_path+im_string))
-    #q_transform = np.linalg.inv(trans_mat)@np.linalg.pinv(transform[i])
     np.set_printoptions(suppress=True,precision=3)
-    #print(transform[i])
     q_transform = np.linalg.inv(transform[i]@trans_mat)
     temp = deepcopy(pcd)
     temp_point3d_id = deepcopy(point3d_id)
     temp.transform(q_transform)
-    #if viz == True:
-    #    o3d.visualization.draw_geometries([temp,mesh_frame],zoom=0.2,
-    #                                    front=[0., 0., -1.],
-    #                                    lookat=[0., -2., 20],
-    #                                    up=[0., -1., 0.])
 
     temp_points = np.asarray(temp.points)
-    
     
     #Initial masking
     x = temp_points[:,0] #3dimensional decomposition of lidar points
@@ -149,16 +122,15 @@ for i in range(N):
     positive_mask = np.where((np.abs(theta_x) < (fov_x/2)) & (np.abs(theta_y)<(fov_y/2)) & (z<max_x) & (z > min_x)) #filtering mask
     temp_points = np.squeeze(temp_points[positive_mask,:]) #filtered points
     temp_point3d_id = np.squeeze(temp_point3d_id[positive_mask])
-    
-    
-    
+
     temp.points = o3d.utility.Vector3dVector(temp_points)
+    
+    diameter = np.linalg.norm(np.asarray(temp.get_max_bound()) - np.asarray(temp.get_min_bound()))
     camera = [0, 0, 0]
-    radius = 40000
+    radius = diameter*2000
     _, positive_mask = temp.hidden_point_removal(camera, radius)
     temp_points = np.squeeze(temp_points[positive_mask])
     temp_point3d_id = np.squeeze(temp_point3d_id[positive_mask])
-    
     ### Code for projecting the point cloud onto the image plane ###
     r,_ = np.shape(temp_points) #shape of filtered array
     extend_homogenous = np.ones((r,1)) #creating homogenous extender (r,1)
@@ -176,40 +148,27 @@ for i in range(N):
     temp_points = np.squeeze(temp_points[positive_mask,:])
     temp_point3d_id = np.expand_dims((temp_point3d_id[positive_mask]),axis=1)
     temp_points_proj_idx = np.round(temp_points_proj).astype(int) #rounding to corresponding pixel in image
-    idx_x = temp_points_proj_idx[:,0]
-    idx_y = temp_points_proj_idx[:,1]
-    colors_proj = np.array(img[idx_y,idx_x])/255 #using pixel index to determine colors of points
-    #print('colors_shape =',np.shape(colors))
-    #print('id_shape =',np.shape(temp_point3d_id))
-    n = 0
-    for idx in temp_point3d_id:
-        colors[idx,:] = colors_proj[n,:]
-        n = n+1
-    M,_ = np.shape(temp_point3d_id)
-    if i == 0:
-        list_colors = np.hstack((temp_point3d_id,colors_proj))
-        #print('list_colors_shape = ',np.shape(list_colors))
-    else:
-        temp_list = np.hstack((temp_point3d_id,colors_proj))
-        list_colors = np.vstack((list_colors,temp_list))
-    temp.points = o3d.utility.Vector3dVector(points)
-    temp.colors = o3d.utility.Vector3dVector(colors)
-    temp.transform(q_transform)    
-    if viz == True:
-        o3d.visualization.draw_geometries([temp,mesh_frame],zoom=0.003,
-                                        front=[0., 0., -1.],
-                                        lookat=[0., 0., 1],
-                                        up=[0., -1., 0.])
-        """
-        temp_pixel = o3d.geometry.PointCloud()
-        temp_pixel.points = o3d.utility.Vector3dVector(temp_points_proj)
-        temp_pixel.colors = o3d.utility.Vector3dVector(colors_proj)
-        mesh_frame_pixel = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1000, origin=[0, 0, 0])
-        o3d.visualization.draw_geometries([temp_pixel,mesh_frame_pixel],zoom=100,
-                                        front=[0., 0., -1.],
-                                        lookat=[0., 360., 640],
-                                        up=[0., -1., 0.])"""
-    print("Found "+str(M)+" points in image "+str(i))
-print("Saving point color information at: "+str(output_path))
-np.savetxt(output_path, list_colors, fmt=['%d','%.8f','%.8f','%.8f'], delimiter=",")
+    
+    
+    idx_y = temp_points_proj_idx[:,0]
+    idx_x = temp_points_proj_idx[:,1]
+    depth_val = np.linalg.norm(temp_points,axis=1)
+    
+    img_depth = img[:,:,0]*0
+    M = np.squeeze(np.shape(idx_x))
+    for i in range(M):
+        if img_depth[idx_x[i],idx_y[i]] == 0:
+            img_depth[idx_x[i],idx_y[i]] = depth_val[i]
+        else:
+            img_depth[idx_x[i],idx_y[i]] = (img_depth[idx_x[i],idx_y[i]] + depth_val[i])*0.5
+    
+    #img_depth = cv.GaussianBlur(img_depth,(5,5),0)
+    
+    plt.gray()
+    plt.imshow(img_depth)
+    plt.show()
+    
+    depth_data = np.vstack((idx_x,idx_y,depth_val)).T
+    #print(depth_data)  
+
         
