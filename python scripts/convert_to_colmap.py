@@ -14,10 +14,12 @@ import struct
 ##################################################################
 ##################### DECLARE CONSTANTS ##########################
 ##################################################################
-voxel_size = 0.15
+voxel_size = 0.1
 min_x = 1 #min distance to keep points
-max_x = 200 #max distance to keep points
-sim = False
+max_x = 400 #max distance to keep points
+sim = True
+hidden_point_removal_factor = 500000
+
 
 if sim == True:
     f = 1108.5125019853992
@@ -51,7 +53,7 @@ proj_mat = np.array([[f, 0, px, 0],
 #                                     [0.0, 0.0, 0.0, 1.0]]))
 
 # Paths
-main_path = '/home/jonathan/Reconstruction/outdoor_windmill_custom'
+main_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom'
 image_path = os.path.join(main_path,'input')
 pcd_path = os.path.join(main_path,'pcd')
 reconstructed_path = os.path.join(main_path,'reconstructed.pcd')
@@ -435,7 +437,7 @@ def convert_to_colmap_points3D(p3d,N):
 
 
 ##################################################################
-######################### WRITE camera.txt #######################
+######################### WRITE camera.bin #######################
 ##################################################################
 #camera.txt
 # Camera list with one line of data per camera:
@@ -453,7 +455,7 @@ print("cameras.txt and cameras.bin created!")
 
 
 ##################################################################
-######################### WRITE images.txt #######################
+######################### WRITE images.bin #######################
 ##################################################################
 # Image list with two lines of data per image:
 #   IMAGE_ID, QW, QX, QY, QZ, TX, TY, TZ, CAMERA_ID, NAME
@@ -510,9 +512,8 @@ for i in range(N):
     #                              front=[0., 0., -1.],
     #                              lookat=[0, -2., 20],
     #                              up=[0., -1., 0.])
-    diameter = np.linalg.norm(np.asarray(temp.get_max_bound()) - np.asarray(temp.get_min_bound()))
     camera = [0, 0, 0]
-    radius = diameter*600
+    radius = hidden_point_removal_factor
     _, pt_map = temp.hidden_point_removal(camera, radius)
     temp = temp.select_by_index(pt_map)
     #o3d.visualization.draw_geometries([temp,mesh_frame],zoom=0.3,
@@ -585,7 +586,7 @@ print("images.txt and images.bin created!")
 
 
 ##################################################################
-######################### WRITE points3D.txt #####################
+######################### WRITE points3D.bin #####################
 ##################################################################
 # 3D point list with one line of data per point:
 #   POINT3D_ID, X, Y, Z, R, G, B, ERROR, TRACK[] as (IMAGE_ID, POINT2D_IDX)
@@ -599,7 +600,7 @@ p_z = points[:,2]
 c_r = colors[:,0]
 c_g = colors[:,1]
 c_b = colors[:,2]
-error = 1.0
+error = 0.1
 track = [0, 0]
 print('Processing Points...')
 for i in range(R):

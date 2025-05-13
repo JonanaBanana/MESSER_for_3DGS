@@ -7,13 +7,13 @@ trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
                     [0.0, -1.0, 0.0, 0.0],
                     [0.0, 0.0, 0.0, 1.0]])
 #pcd = o3d.io.read_point_cloud("/home/jonathan/Reconstruction/outdoor_windmill_custom/scans.pcd")
-pcd = o3d.io.read_point_cloud("/home/jonathan/airlab-uav/src/FAST_LIO/PCD/scans.pcd")
+pcd = o3d.io.read_point_cloud("/home/jonathan/Reconstruction/test_stage_windmill_custom/reconstructed.pcd")
 pcd.remove_non_finite_points()
-pcd = pcd.voxel_down_sample(voxel_size=0.1)
+#pcd = pcd.voxel_down_sample(voxel_size=0.1)
 
 #pcd.transform(np.linalg.inv(trans_mat))
-pcd,_ = pcd.remove_statistical_outlier(nb_neighbors=10,
-                                                    std_ratio=2.0)
+#pcd,_ = pcd.remove_statistical_outlier(nb_neighbors=10,
+#                                                    std_ratio=2.0)
 pcd_out = o3d.geometry.PointCloud()
 
 #if transf_to_camera_frame == True:
@@ -49,7 +49,7 @@ pcd_out = o3d.geometry.PointCloud()
 #                         pcd_out, write_ascii=True)
 pcd_out.points = pcd.points
 mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1, origin=[0, 0, 0])
-o3d.visualization.draw_geometries([mesh_frame,pcd_out],zoom=0.1,
+o3d.visualization.draw_geometries([mesh_frame,pcd],zoom=0.1,
                                   front=[1., 0., 0.],
                                   lookat=[0, 0., 0.],
                                   up=[0.2, 0., 1.])
