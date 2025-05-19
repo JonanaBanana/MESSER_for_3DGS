@@ -30,7 +30,7 @@ global invert_image
 ############################ Change These #########################
 image_topic = '/rgb'
 odometry_topic = '/Odometry'
-main_path = '/home/jonathan/Reconstruction/test_stage_warehouse_custom'  
+main_path = '/home/jonathan/Reconstruction/test_stage_arcade_custom'  
 
 invert_image = False
 sim = True
@@ -44,9 +44,9 @@ if sim == False:
 
     
 else:
-    td = 8
+    td = 10
     queue_size = 10
-    max_delay = 0.1
+    max_delay = 0.01
     image_topic = '/rgb'
     odometry_topic = '/Odometry'
 

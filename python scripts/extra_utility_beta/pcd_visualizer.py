@@ -7,7 +7,7 @@ trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
                     [0.0, -1.0, 0.0, 0.0],
                     [0.0, 0.0, 0.0, 1.0]])
 #pcd = o3d.io.read_point_cloud("/home/jonathan/Reconstruction/outdoor_windmill_custom/scans.pcd")
-pcd = o3d.io.read_point_cloud("/home/jonathan/Reconstruction/test_stage_windmill_custom/reconstructed.pcd")
+pcd = o3d.io.read_point_cloud("/home/jonathan/Reconstruction/test_stage_arcade_custom/reconstructed.pcd")
 pcd.remove_non_finite_points()
 #pcd = pcd.voxel_down_sample(voxel_size=0.1)
 

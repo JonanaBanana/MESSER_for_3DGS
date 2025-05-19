@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import os
 
-main_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom'
+main_path = '/home/jonathan/Reconstruction/outdoor_windmill_custom'
 img_path = os.path.join(main_path,'input')
 output_path = os.path.join(main_path,'images')
 if not os.path.isdir(output_path):

@@ -17,8 +17,8 @@ import struct
 voxel_size = 0.1
 min_x = 1 #min distance to keep points
 max_x = 400 #max distance to keep points
-sim = True
-hidden_point_removal_factor = 500000
+sim = False
+hidden_point_removal_factor = 100000
 
 
 if sim == True:
@@ -53,7 +53,7 @@ proj_mat = np.array([[f, 0, px, 0],
 #                                     [0.0, 0.0, 0.0, 1.0]]))
 
 # Paths
-main_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom'
+main_path = '/home/jonathan/Reconstruction/outdoor_windmill_custom'
 image_path = os.path.join(main_path,'input')
 pcd_path = os.path.join(main_path,'pcd')
 reconstructed_path = os.path.join(main_path,'reconstructed.pcd')
@@ -593,7 +593,7 @@ print("images.txt and images.bin created!")
 # Number of points: 3, mean track length: 3.3334
 p3d = {}
 points = np.asarray(pcd.points)
-colors = np.asarray(pcd.colors)
+colors = np.round((np.asarray(pcd.colors)*255)).astype(int)
 p_x = points[:,0]
 p_y = points[:,1]
 p_z = points[:,2]

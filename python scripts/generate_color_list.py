@@ -5,7 +5,7 @@ import os
 from copy import deepcopy
 import matplotlib.pyplot as plt
 
-sim = True
+sim = False
 fast_lio = True
 viz = False
 
@@ -13,12 +13,12 @@ viz = False
 
 ######################### CONSTANTS ###############################
 
-fill_background = False
+fill_background = True
 sphere_center = [0,0,0]
 sphere_radius = 200
-sphere_num_pts = 70000
+sphere_num_pts = 50000
 
-hidden_point_removal_factor = 500000
+hidden_point_removal_factor = 100000
 
 voxel_size = 0.1
 min_x = 1 #min distance to keep points
@@ -44,7 +44,7 @@ proj_mat = np.array([[f, 0, px, 0],
 #################################################################
 
 ########################## PATHS ################################
-main_path = '/home/jonathan/Reconstruction/test_stage_warehouse_custom'
+main_path = '/home/jonathan/Reconstruction/outdoor_windmill_custom'
 pcd_path = os.path.join(main_path,'pcd')
 img_path = os.path.join(main_path,'input/')
 accumulated_path = os.path.join(main_path,'pcd/accumulated_point_cloud.pcd')
@@ -200,7 +200,7 @@ for i in range(N):
     temp_points_proj_idx = np.round(temp_points_proj).astype(int) #rounding to corresponding pixel in image
     idx_x = temp_points_proj_idx[:,0]
     idx_y = temp_points_proj_idx[:,1]
-    colors_proj = np.array(img[idx_y,idx_x])/255 #using pixel index to determine colors of points
+    colors_proj = np.array(img[idx_y,idx_x]/255) #using pixel index to determine colors of points
     #print('colors_shape =',np.shape(colors))
     #print('id_shape =',np.shape(temp_point3d_id))
     n = 0

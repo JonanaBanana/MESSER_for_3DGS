@@ -4,7 +4,7 @@ import csv
 import os
 import cv2
 from copy import deepcopy
-main_path = '/home/jonathan/Reconstruction/test_stage_chessboard/'
+main_path = '/home/jonathan/Reconstruction/test_stage_warehouse_custom/'
 transform_path = os.path.join(main_path,'transformations.csv')
 pcd_path = os.path.join(main_path,'pcd/')
 img_path = os.path.join(main_path,'input/')
@@ -70,7 +70,7 @@ trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
 for i in range(N):
     if i%10==0:
         print("Processing pointcloud",i,'/',N)
-    img = np.asarray(o3d.io.read_image(img_path+'/img_'+str(i)+'.jpg'))
+    img = np.asarray(o3d.io.read_image(img_path+'/img_'+str(i)+'.jpg'))    
     pcd = o3d.io.read_point_cloud(pcd_path+'/pcd_'+str(i)+'.pcd')
     diameter = np.linalg.norm(np.asarray(pcd.get_max_bound()) - np.asarray(pcd.get_min_bound()))
     camera = [0, 0, 0]
