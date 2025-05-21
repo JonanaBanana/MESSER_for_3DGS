@@ -17,12 +17,12 @@ import struct
 voxel_size = 0.1
 min_x = 1 #min distance to keep points
 max_x = 400 #max distance to keep points
-sim = False
+sim = True
 hidden_point_removal_factor = 100000
 
 
 if sim == True:
-    f = 1108.5125019853992
+    f = 1108.5125
     h = 720
     w = 1280
     px = 640
@@ -53,7 +53,7 @@ proj_mat = np.array([[f, 0, px, 0],
 #                                     [0.0, 0.0, 0.0, 1.0]]))
 
 # Paths
-main_path = '/home/jonathan/Reconstruction/outdoor_windmill_custom'
+main_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom_2'
 image_path = os.path.join(main_path,'input')
 pcd_path = os.path.join(main_path,'pcd')
 reconstructed_path = os.path.join(main_path,'reconstructed.pcd')

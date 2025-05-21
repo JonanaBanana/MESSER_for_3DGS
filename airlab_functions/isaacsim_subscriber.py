@@ -14,9 +14,13 @@ import numpy as np
 
 from scipy.spatial.transform import Rotation
 
+from tf2_ros import TransformException
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
+
 global i
 global k
-global simy
+global sim
 global td
 global image_topic
 global odometry_topic
@@ -30,7 +34,7 @@ global invert_image
 ############################ Change These #########################
 image_topic = '/rgb'
 odometry_topic = '/Odometry'
-main_path = '/home/jonathan/Reconstruction/test_stage_arcade_custom'  
+main_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom_3'  
 
 invert_image = False
 sim = True
@@ -44,7 +48,7 @@ if sim == False:
 
     
 else:
-    td = 10
+    td = 40
     queue_size = 10
     max_delay = 0.01
     image_topic = '/rgb'
@@ -57,6 +61,7 @@ i = 0
 k = 0
 transform_path = os.path.join(main_path,'transformations.csv')
 image_path = os.path.join(main_path,'input/')
+gt_path = os.path.join(main_path,'gt_transformations.csv')
 ##################################################################
 
 
@@ -73,6 +78,12 @@ class ImageNode(Node):
         super().__init__('image_saver')
         if not os.path.isdir(image_path):
             os.makedirs(image_path)
+            
+        self.target_frame = self.declare_parameter(
+            'target_frame', 'Mover').get_parameter_value().string_value
+        
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
         
         self.sub_rgb = Subscriber(self,Image,image_topic)
         self.sub_odom = Subscriber(self,Odometry,odometry_topic)
@@ -87,6 +98,7 @@ class ImageNode(Node):
         global k
         global transform_path
         global transf_out
+        global gt_transf_out
         global image_path
         global td
         global invert_image
@@ -106,40 +118,82 @@ class ImageNode(Node):
             transf = np.eye(4)
             transf[:3,:3]=r.as_matrix()
             transf[:3,3]=tf_t
-            try:
-                transf_out = np.vstack((transf_out,transf))
-                print("Caught synchronized rgb-odometry pair number %d!" %k)
-                #print("Transform: " ,transf)
-                np.savetxt(transform_path, transf_out, delimiter=",")
             
-            except Exception as e:
-                print(e)
-                print("Creating new transformation matrix list")
-                transf_out = transf
-                #print("Transform: ", transf)
-                np.savetxt(transform_path, transf_out, delimiter=",")
-            
-            #saving point cloud
-            #saving rgb image and pointcloud
-            cv_rgb = bridge.imgmsg_to_cv2(rgb, desired_encoding='bgr8')
-            if invert_image == True:
-                cv_rgb = cv2.rotate(cv_rgb, cv2.ROTATE_180)
-                
-            if k >= 10:
-                im_string = '/img_000' + str(k) + '.jpg'
-                if k >= 100:
-                    im_string = '/img_00' + str(k) + '.jpg'
-                    if k >= 1000:
-                        im_string = '/img_0' + str(k) + '.jpg'
-                        if k >= 10000:
-                            im_string = '/img_' + str(k) + '.jpg'
+            if sim == True:
+                from_frame_rel = self.target_frame
+                to_frame_rel = 'odom'
+                try:            
+                    gt_t = self.tf_buffer.lookup_transform(
+                                to_frame_rel,
+                                from_frame_rel,
+                                rclpy.time.Time())
+                    #creating transformation matrix from frame transform information
+                    gt_tf_t = np.array([gt_t.transform.translation.x, gt_t.transform.translation.y,gt_t.transform.translation.z])
+                    gt_tf_r = np.array([gt_t.transform.rotation.x, gt_t.transform.rotation.y, gt_t.transform.rotation.z, gt_t.transform.rotation.w])
+                    gt_r = Rotation.from_quat(gt_tf_r)
+                    gt_transf = np.eye(4)
+                    gt_transf[:3,:3]=gt_r.as_matrix()
+                    gt_transf[:3,3]=gt_tf_t
+                    flag2 = True
+                except TransformException as ex:
+                    flag2 = False
+                    self.get_logger().info(
+                        f'Could not transform {to_frame_rel} to {from_frame_rel}: {ex}')
+                    return
             else:
-                im_string = '/img_0000' + str(k) + '.jpg'
+                flag2 = True
+            
+            if flag2 == True:
+                try:
+                    transf_out = np.vstack((transf_out,transf))
+                    print("Caught synchronized rgb-odometry pair number %d!" %k)
+                    #print("Transform: " ,transf)
+                    np.savetxt(transform_path, transf_out, delimiter=",")
                 
-            cv2.imwrite(image_path + im_string,cv_rgb)
-        
-            k = k+1
-            i = 0
+                except Exception as e:
+                    print(e)
+                    print("Creating new transformation matrix list")
+                    transf_out = transf
+                    #print("Transform: ", transf)
+                    np.savetxt(transform_path, transf_out, delimiter=",")
+                
+                try:
+                    gt_transf_out = np.vstack((gt_transf_out,gt_transf))
+                    #print("Transform: " ,gt_transf)
+                    np.savetxt(gt_path, gt_transf_out, delimiter=",")
+                
+                except Exception as e:
+                    print(e)
+                    print("Creating new ground truth transformation matrix list")
+                    gt_transf_out = gt_transf
+                    #print("Transform: ", gt_transf)
+                    np.savetxt(gt_path, gt_transf_out, delimiter=",")
+                
+                
+                #saving point cloud
+                #saving rgb image and pointcloud
+                cv_rgb = bridge.imgmsg_to_cv2(rgb, desired_encoding='bgr8')
+                if invert_image == True:
+                    cv_rgb = cv2.rotate(cv_rgb, cv2.ROTATE_180)
+                    
+                if k >= 10:
+                    im_string = '/img_000' + str(k) + '.jpg'
+                    if k >= 100:
+                        im_string = '/img_00' + str(k) + '.jpg'
+                        if k >= 1000:
+                            im_string = '/img_0' + str(k) + '.jpg'
+                            if k >= 10000:
+                                im_string = '/img_' + str(k) + '.jpg'
+                else:
+                    im_string = '/img_0000' + str(k) + '.jpg'
+                    
+                cv2.imwrite(image_path + im_string,cv_rgb)
+            
+                k = k+1
+                i = 0
+            else:
+                print("Error with ground truth pose lookup...")
+                
         else:
             i = i+1
 

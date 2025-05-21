@@ -5,7 +5,7 @@ import os
 from copy import deepcopy
 
 ########################## PATHS ################################
-main_path = '/home/jonathan/Reconstruction/outdoor_windmill_custom'
+main_path = '/home/jonathan/Reconstruction/test_stage_pagota_custom'
 downsampled_path = os.path.join(main_path,'downsampled_point_cloud.pcd')
 csv_path = os.path.join(main_path,'point_cloud_color_information.csv')
 out_path = os.path.join(main_path,'reconstructed.pcd')

@@ -5,7 +5,8 @@ import os
 from copy import deepcopy
 import matplotlib.pyplot as plt
 
-sim = False
+sim = True
+use_gt_pose = False
 fast_lio = True
 viz = False
 
@@ -20,11 +21,11 @@ sphere_num_pts = 50000
 
 hidden_point_removal_factor = 100000
 
-voxel_size = 0.1
+voxel_size = 0.05
 min_x = 1 #min distance to keep points
 max_x = 400 #max distance to keep points
 if sim == True:
-    f = 1108.5125019853992
+    f = 1108.5125
     h = 720
     w = 1280
     px = 640
@@ -44,7 +45,7 @@ proj_mat = np.array([[f, 0, px, 0],
 #################################################################
 
 ########################## PATHS ################################
-main_path = '/home/jonathan/Reconstruction/outdoor_windmill_custom'
+main_path = '/home/jonathan/Reconstruction/test_stage_pagota_custom'
 pcd_path = os.path.join(main_path,'pcd')
 img_path = os.path.join(main_path,'input/')
 accumulated_path = os.path.join(main_path,'pcd/accumulated_point_cloud.pcd')
@@ -52,6 +53,8 @@ downsampled_path = os.path.join(main_path,'downsampled_point_cloud.pcd')
 scans_path = os.path.join(main_path,'scans.pcd')
 transform_path = os.path.join(main_path,'transformations.csv')
 output_path = os.path.join(main_path,'point_cloud_color_information.csv')
+if use_gt_pose == True:
+    transform_path =  os.path.join(main_path,'gt_transformations.csv')
 #################################################################
 
 ############# Transformation matrix to camera frame #############

@@ -7,7 +7,7 @@ from copy import deepcopy
 
 ######################### CONSTANTS ###############################
 threshold = 0.02
-voxel_size = 0.1
+voxel_size = 0.5
 filter_factor = 1.5
 trans_init = np.asarray([[1., 0., 0., 0.],
                          [0., 1., 0., 0.],
@@ -18,9 +18,9 @@ viz = True
 #################################################################
 
 ########################## PATHS ################################
-main_path = '/home/jonathan/gaussian_reconstructions/test_stage_pagota_custom/point_cloud'
+main_path = '/home/jonathan/gaussian_reconstructions/test_stage_windmill_custom_2/point_cloud'
 ply_path = os.path.join(main_path,'iteration_30000/point_cloud.ply')
-scans_path = '/home/jonathan/Reconstruction/test_stage_pagota_custom/scans.pcd'
+scans_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom_2/scans.pcd'
 output_folder = os.path.join(main_path,'iteration_31000')
 output_path = os.path.join(output_folder,'point_cloud.ply')
 #################################################################
@@ -39,11 +39,6 @@ comp_pcd.remove_non_finite_points()
 comp_pcd = comp_pcd.voxel_down_sample(voxel_size=voxel_size)
 pcd = o3d.geometry.PointCloud()
 pcd.points = o3d.utility.Vector3dVector(points)
-#ICP
-reg_p2p = o3d.pipelines.registration.registration_icp(
-    comp_pcd, pcd, threshold, trans_init,
-    o3d.pipelines.registration.TransformationEstimationPointToPoint(),
-    o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=2000))
 
 if viz == True:    
     mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=2, origin=[0, 0, 0])
