@@ -13,23 +13,13 @@ import struct
 voxel_size = 0.1
 min_x = 1 #min distance to keep points
 max_x = 400 #max distance to keep points
-sim = True
 hidden_point_removal_factor = 100000
 
-
-if sim == True:
-    f = 1108.5125
-    h = 720
-    w = 1280
-    px = 640
-    py = 360
-    
-else:
-    f = 371.2
-    h = 480
-    w = 640
-    px = 320
-    py = 245
+f = 1108.5125
+h = 720
+w = 1280
+px = 640
+py = 360
     
 fov_x = 2*np.arctan2(w,(2*f))
 fov_y = 2*np.arctan2(h,(2*f))

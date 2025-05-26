@@ -38,22 +38,13 @@ file_path = os.path.dirname(__file__)
 main_path = os.path.join(file_path, '../data') 
 
 invert_image = False
-sim = True
-
-if sim == False:
-    td = 2
-    queue_size = 100
-    max_delay = 10
-    image_topic = '/camera/color/image_raw'
-    odometry_topic = '/Odometry'
-
+sim = False
     
-else:
-    td = 40
-    queue_size = 10
-    max_delay = 0.01
-    image_topic = '/rgb'
-    odometry_topic = '/Odometry'
+td = 40
+queue_size = 10
+max_delay = 0.01
+image_topic = '/rgb'
+odometry_topic = '/Odometry'
 
 ##################################################################
 

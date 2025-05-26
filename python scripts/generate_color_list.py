@@ -5,9 +5,7 @@ import os
 from copy import deepcopy
 
 ######################### CONSTANTS ###############################
-sim = True
 use_gt_pose = False
-fast_lio = True
 viz = True
 
 fill_background = True
@@ -20,18 +18,11 @@ hidden_point_removal_factor = 100000
 voxel_size = 0.1
 min_x = 1 #min distance to keep points
 max_x = 400 #max distance to keep points
-if sim == True:
-    f = 1108.5125
-    h = 720
-    w = 1280
-    px = 640
-    py = 360
-else:
-    f = 372
-    h = 480
-    w = 640
-    px = 314
-    py = 238
+f = 1108.5125
+h = 720
+w = 1280
+px = 640
+py = 360
 #################################################################
 
 
@@ -57,36 +48,30 @@ trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
 #################################################################
 
 #read pointcloud
-if fast_lio == True:
-    pcd = o3d.geometry.PointCloud()
-    pcd_fl = o3d.io.read_point_cloud(scans_path)
-    pcd_fl.remove_non_finite_points()
-    pcd_fl,_ = pcd_fl.remove_statistical_outlier(nb_neighbors=10,
-                                                    std_ratio=1.5)
-    pcd_fl = pcd_fl.voxel_down_sample(voxel_size=voxel_size)
-    pcd.points = pcd_fl.points
-    if fill_background == True:
-        sphere_center,_ = pcd.compute_mean_and_covariance()
-        indices = np.arange(0, sphere_num_pts, dtype=float) + 0.5
+pcd = o3d.geometry.PointCloud()
+pcd_fl = o3d.io.read_point_cloud(scans_path)
+pcd_fl.remove_non_finite_points()
+pcd_fl,_ = pcd_fl.remove_statistical_outlier(nb_neighbors=10,
+                                                std_ratio=2)
+pcd_fl = pcd_fl.voxel_down_sample(voxel_size=voxel_size)
+pcd.points = pcd_fl.points
+if fill_background == True:
+    sphere_center,_ = pcd.compute_mean_and_covariance()
+    indices = np.arange(0, sphere_num_pts, dtype=float) + 0.5
 
-        phi = np.arccos(1 - 2*indices/sphere_num_pts)
-        theta = np.pi * (1 + 5**0.5) * indices
+    phi = np.arccos(1 - 2*indices/sphere_num_pts)
+    theta = np.pi * (1 + 5**0.5) * indices
 
-        sphere_x = np.cos(theta) * np.sin(phi)*sphere_radius + sphere_center[0]
-        sphere_y = np.sin(theta) * np.sin(phi)*sphere_radius + sphere_center[1]
-        sphere_z = np.cos(phi)*sphere_radius + sphere_center[2]
-        sphere_points = np.vstack((sphere_x,sphere_y,sphere_z)).T
-        pcd.points.extend(o3d.utility.Vector3dVector(sphere_points))
-    
-    
-    print("Saving voxel downsampled point cloud which is used for indexing")
-    pcd_down_out = deepcopy(pcd)
-    o3d.io.write_point_cloud(downsampled_path, pcd_down_out, write_ascii=True)
-else:
-    pcd = o3d.io.read_point_cloud(accumulated_path)
-    pcd = pcd.voxel_down_sample(voxel_size=voxel_size)
-    print("Saving voxel downsampled point cloud which is used for indexing")
-    o3d.io.write_point_cloud(downsampled_path, pcd, write_ascii=True)
+    sphere_x = np.cos(theta) * np.sin(phi)*sphere_radius + sphere_center[0]
+    sphere_y = np.sin(theta) * np.sin(phi)*sphere_radius + sphere_center[1]
+    sphere_z = np.cos(phi)*sphere_radius + sphere_center[2]
+    sphere_points = np.vstack((sphere_x,sphere_y,sphere_z)).T
+    pcd.points.extend(o3d.utility.Vector3dVector(sphere_points))
+
+
+print("Saving voxel downsampled point cloud which is used for indexing")
+pcd_down_out = deepcopy(pcd)
+o3d.io.write_point_cloud(downsampled_path, pcd_down_out, write_ascii=True)
 mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.5, origin=[0, 0, 0])
 if viz == True:
     o3d.visualization.draw_geometries([pcd_down_out,mesh_frame],zoom=0.1,
