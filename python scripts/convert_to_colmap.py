@@ -1,13 +1,9 @@
-import pycolmap as cm
 import numpy as np
 import open3d as o3d
-import matplotlib.pyplot as plt
 import csv
 import os
-from pyquaternion import Quaternion
 from copy import deepcopy
 from itertools import chain
-import argparse
 import collections
 import struct
 
@@ -41,19 +37,9 @@ proj_mat = np.array([[f, 0, px, 0],
                 [0, f, py, 0],
                 [0, 0, 1, 0]])
 
-#rotation around y axis due to camera frame issue in IsaacSim
-#transform_out = np.array([[-1.0, -0.0, 0.0, 0.0],   
-#                          [0.0, 1.0, 0.0, 0.0],   
-#                          [0.0, 0.0, -1.0, 0.0],   
-#                          [0.0, 0.0, 0.0, 1.0]])
-#transformation matrix to transform between world and camera frame
-#trans_mat = np.linalg.pinv(np.array([[0.0, 0.0, 1.0, 0.0],
-#                                     [-1.0, 0.0, 0.0, 0.0],
-#                                     [0.0, -1.0, 0.0, 0.0],
-#                                     [0.0, 0.0, 0.0, 1.0]]))
-
 # Paths
-main_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom_2'
+file_path = os.path.dirname(__file__)  
+main_path = os.path.join(file_path, '../example_stage_warehouse')
 image_path = os.path.join(main_path,'input')
 pcd_path = os.path.join(main_path,'pcd')
 reconstructed_path = os.path.join(main_path,'reconstructed.pcd')
@@ -494,7 +480,7 @@ im_l1 = {}
 im_l2 = {}
 print("Processing images...")
 for i in range(N):
-    print(i,'/',N)
+    print(i,'/',N-1)
     q_transform = np.linalg.inv(transform[i]@trans_mat)
     #q_transform = np.linalg.pinv(transform[i])
     t = q_transform[:3,3]

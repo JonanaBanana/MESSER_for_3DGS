@@ -3,25 +3,21 @@ import open3d as o3d
 import csv
 import os
 from copy import deepcopy
-import matplotlib.pyplot as plt
 
+######################### CONSTANTS ###############################
 sim = True
 use_gt_pose = False
 fast_lio = True
-viz = False
-
-
-
-######################### CONSTANTS ###############################
+viz = True
 
 fill_background = True
 sphere_center = [0,0,0]
-sphere_radius = 200
+sphere_radius = 200 #meters
 sphere_num_pts = 50000
 
 hidden_point_removal_factor = 100000
 
-voxel_size = 0.05
+voxel_size = 0.1
 min_x = 1 #min distance to keep points
 max_x = 400 #max distance to keep points
 if sim == True:
@@ -36,16 +32,12 @@ else:
     w = 640
     px = 314
     py = 238
-fov_x = 2*np.arctan2(w,(2*f))
-fov_y = 2*np.arctan2(h,(2*f))
-#projection matrix to project 3d points to image plane
-proj_mat = np.array([[f, 0, px, 0],
-                    [0, f, py, 0],
-                    [0, 0, 1, 0]])
 #################################################################
 
+
 ########################## PATHS ################################
-main_path = '/home/jonathan/Reconstruction/test_stage_pagota_custom'
+file_path = os.path.dirname(__file__)  
+main_path = os.path.join(file_path, '../example_stage_warehouse')
 pcd_path = os.path.join(main_path,'pcd')
 img_path = os.path.join(main_path,'input/')
 accumulated_path = os.path.join(main_path,'pcd/accumulated_point_cloud.pcd')
@@ -107,6 +99,12 @@ if viz == True:
     #                                    up=[0., -1., 0.])
 
 
+fov_x = 2*np.arctan2(w,(2*f))
+fov_y = 2*np.arctan2(h,(2*f))
+#projection matrix to project 3d points to image plane
+proj_mat = np.array([[f, 0, px, 0],
+                    [0, f, py, 0],
+                    [0, 0, 1, 0]])
 R,_ = np.shape(np.asarray(pcd.points))
 point3d_id = np.linspace(0,R-1,R).astype(int)
 points = np.asarray(pcd.points)

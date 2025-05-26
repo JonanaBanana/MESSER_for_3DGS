@@ -34,7 +34,8 @@ global invert_image
 ############################ Change These #########################
 image_topic = '/rgb'
 odometry_topic = '/Odometry'
-main_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom_3'  
+file_path = os.path.dirname(__file__)  
+main_path = os.path.join(file_path, '../data') 
 
 invert_image = False
 sim = True

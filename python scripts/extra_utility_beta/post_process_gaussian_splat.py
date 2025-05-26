@@ -1,7 +1,7 @@
 import numpy as np
 import open3d as o3d
 import os
-from plyfile import PlyData, PlyElement
+from plyfile import PlyData
 from copy import deepcopy
 
 
@@ -18,7 +18,8 @@ viz = True
 #################################################################
 
 ########################## PATHS ################################
-main_path = '/home/jonathan/gaussian_reconstructions/test_stage_windmill_custom_2/point_cloud'
+file_path = os.path.dirname(__file__)  
+main_path = os.path.join(file_path, '../example_stage_warehouse')
 ply_path = os.path.join(main_path,'iteration_30000/point_cloud.ply')
 scans_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom_2/scans.pcd'
 output_folder = os.path.join(main_path,'iteration_31000')
