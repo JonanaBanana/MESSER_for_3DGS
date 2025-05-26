@@ -6,7 +6,7 @@ This package provides a pipeline for SfM-free 3DGS reconstruction optimized towa
 ![alt text](https://github.com/JonanaBanana/airlab_functions/blob/main/images/windmill_comparison.png?raw=true)
 ![alt text](https://github.com/JonanaBanana/airlab_functions/blob/main/images/filtering.png?raw=true)
 
-**NOTE:** _This is a package for testing and developing 3D reconstruction algorithms from RGB, LiDAR and odometry/pose information, specifically for use in feature poor environments where structure from motion using RGB images is not viable. This package is unstable and poorly optimized since it is in very early stages of development as of May 26th, 2025._
+**NOTE:** _This is a package for testing and developing 3D reconstruction algorithms from RGB, LiDAR and odometry/pose information, specifically for use in feature poor environments where structure from motion using RGB images is not viable. This package is not fully and optimally developed, but is a work in progress as of May 26th, 2025._
 
 ## Requirements:
 
