@@ -2,9 +2,9 @@
 
 This package provides a pipeline for SfM-free 3DGS reconstruction optimized towards more coherent reconstructions in large sparse environments such as windmills. The poses of images and points are estimated solely from IMU and LiDAR using FAST-LIO, so there is no dependency on visual features. Thus any sparse environment should be reconstructable as long as you can achieve accurate pose predictions and point clouds. The main focus is on achieving coherent sparse environments by minimizing floating gaussians and overfitting free space during 3DGS reconstruction.
 
-![alt text](https://github.com/JonanaBanana/airlab_functions/blob/main/images/environment_comparison.png?raw=true)
-![alt text](https://github.com/JonanaBanana/airlab_functions/blob/main/images/windmill_comparison.png?raw=true)
-![alt text](https://github.com/JonanaBanana/airlab_functions/blob/main/images/filtering.png?raw=true)
+![alt text](https://github.com/JonanaBanana/airlab_functions/blob/develop_j/images/environment_comparison.png?raw=true)
+![alt text](https://github.com/JonanaBanana/airlab_functions/blob/develop_j/images/windmill_comparison.png?raw=true)
+![alt text](https://github.com/JonanaBanana/airlab_functions/blob/develop_j/images/filtering.png?raw=true)
 
 **NOTE:** _This is a package for testing and developing 3D reconstruction algorithms from RGB, LiDAR and odometry/pose information, specifically for use in feature poor environments where structure from motion using RGB images is not viable. This package is unstable and poorly optimized since it is in very early stages of development as of May 26th, 2025._
 
