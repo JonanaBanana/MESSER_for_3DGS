@@ -168,3 +168,11 @@ for a massive increase in speed.
 You can then benchmark the visual reconstruction results with the following:
 python render.py -m /path/to/main_path/
 python metrics.py -m /path/to/main_path/
+
+## Postprocessing:
+
+If you want to filter out the spherical background after training or filter out most of the floating gaussians that might have been created during training, in `airlab_functions/python_scripts/extra_utility_beta` run `post_process_gaussian_splat.py`. This filters out points reated during training that are not located close to the raw point cloud from fast-lio2. The following parameters can be changed:
+
+- voxel_size: increase for faster but more rough filtering.
+- filter_factor: the maximum distance to each voxel filtered points required to be kept in the point cloud. Increase for a larger radius around the voxels to be kept. Minimum 1.
+- viz: keep true to vizualize the overlay and filtering.

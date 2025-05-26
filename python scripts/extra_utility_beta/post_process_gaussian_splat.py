@@ -6,13 +6,8 @@ from copy import deepcopy
 
 
 ######################### CONSTANTS ###############################
-threshold = 0.02
 voxel_size = 0.5
 filter_factor = 1.5
-trans_init = np.asarray([[1., 0., 0., 0.],
-                         [0., 1., 0., 0.],
-                         [0., 0., 1., 0.], 
-                         [0., 0., 0., 1.]])
 
 viz = True
 #################################################################
@@ -21,7 +16,7 @@ viz = True
 file_path = os.path.dirname(__file__)  
 main_path = os.path.join(file_path, '../example_stage_warehouse')
 ply_path = os.path.join(main_path,'iteration_30000/point_cloud.ply')
-scans_path = '/home/jonathan/Reconstruction/test_stage_windmill_custom_2/scans.pcd'
+scans_path = os.path.join(main_path,'scans.pcd')
 output_folder = os.path.join(main_path,'iteration_31000')
 output_path = os.path.join(output_folder,'point_cloud.ply')
 #################################################################
