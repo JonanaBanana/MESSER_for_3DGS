@@ -3,13 +3,12 @@ import open3d as o3d
 import csv
 import os
 from copy import deepcopy
-from ament_index_python.packages import get_package_share_directory
 
 ######################### CONSTANTS ###############################
 use_gt_pose = False
 viz = True
 
-fill_background = True
+fill_background = False
 sphere_center = [0,0,0]
 sphere_radius = 200 #meters
 sphere_num_pts = 50000
@@ -19,7 +18,7 @@ hidden_point_removal_factor = 100000
 voxel_size = 0.1
 min_x = 1 #min distance to keep points
 max_x = 400 #max distance to keep points
-f = 1108.5125
+f = 1100
 h = 720
 w = 1280
 px = 640
@@ -28,8 +27,8 @@ py = 360
 
 
 ########################## PATHS ################################
-main_path = get_package_share_directory('messer_for_3dgs')
-main_path = os.path.join(main_path,'../../captured_data/')
+file_path = os.path.dirname(__file__)  
+main_path = os.path.join(file_path, '../example_stage_warehouse')
 pcd_path = os.path.join(main_path,'pcd')
 img_path = os.path.join(main_path,'input/')
 accumulated_path = os.path.join(main_path,'pcd/accumulated_point_cloud.pcd')
