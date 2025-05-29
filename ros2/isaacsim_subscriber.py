@@ -1,7 +1,7 @@
 import rclpy
 import os
 from rclpy.node import Node
-
+from ament_index_python.packages import get_package_share_directory
 from sensor_msgs.msg import Image
 from nav_msgs.msg import Odometry
 
@@ -34,8 +34,9 @@ global invert_image
 ############################ Change These #########################
 image_topic = '/rgb'
 odometry_topic = '/Odometry'
-file_path = os.path.dirname(__file__)  
-main_path = os.path.join(file_path, '../data') 
+main_path = get_package_share_directory('messer_for_3dgs')
+main_path = os.path.join(main_path,'../../captured_data/')
+print('Saving captured data at path:',main_path)
 
 invert_image = False
 sim = False
@@ -43,8 +44,6 @@ sim = False
 td = 40
 queue_size = 10
 max_delay = 0.01
-image_topic = '/rgb'
-odometry_topic = '/Odometry'
 
 ##################################################################
 
@@ -149,17 +148,18 @@ class ImageNode(Node):
                     #print("Transform: ", transf)
                     np.savetxt(transform_path, transf_out, delimiter=",")
                 
-                try:
-                    gt_transf_out = np.vstack((gt_transf_out,gt_transf))
-                    #print("Transform: " ,gt_transf)
-                    np.savetxt(gt_path, gt_transf_out, delimiter=",")
-                
-                except Exception as e:
-                    print(e)
-                    print("Creating new ground truth transformation matrix list")
-                    gt_transf_out = gt_transf
-                    #print("Transform: ", gt_transf)
-                    np.savetxt(gt_path, gt_transf_out, delimiter=",")
+                if sim == True:
+                    try:
+                        gt_transf_out = np.vstack((gt_transf_out,gt_transf))
+                        #print("Transform: " ,gt_transf)
+                        np.savetxt(gt_path, gt_transf_out, delimiter=",")
+                    
+                    except Exception as e:
+                        print(e)
+                        print("Creating new ground truth transformation matrix list")
+                        gt_transf_out = gt_transf
+                        #print("Transform: ", gt_transf)
+                        np.savetxt(gt_path, gt_transf_out, delimiter=",")
                 
                 
                 #saving point cloud

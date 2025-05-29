@@ -3,10 +3,11 @@ import open3d as o3d
 import csv
 import os
 from copy import deepcopy
+from ament_index_python.packages import get_package_share_directory
 
 ########################## PATHS ################################
-file_path = os.path.dirname(__file__)  
-main_path = os.path.join(file_path, '../example_stage_warehouse')
+main_path = get_package_share_directory('messer_for_3dgs')
+main_path = os.path.join(main_path,'../../captured_data/')
 downsampled_path = os.path.join(main_path,'downsampled_point_cloud.pcd')
 csv_path = os.path.join(main_path,'point_cloud_color_information.csv')
 out_path = os.path.join(main_path,'reconstructed.pcd')

@@ -1,7 +1,7 @@
 import rclpy
 import os
 from rclpy.node import Node
-
+from ament_index_python.packages import get_package_share_directory
 from sensor_msgs.msg import Image
 from nav_msgs.msg import Odometry
 
@@ -32,34 +32,14 @@ global rest_delay
 global last_odom_time
 
 ############################ Change These #########################
-main_path = '/home/jonathan/Reconstruction/test_stage_warehouse_custom'  
-
+main_path = get_package_share_directory('messer_for_3dgs')
+main_path = os.path.join(main_path,'../../captured_data/')
+print('Saving captured data at path:',main_path)
 max_time_diff = 25 #milliseconds
 rest_delay = 500 #milliseconds
 rotate_image = False
-sim = True
-##################################################################
-
-############# Transformation matrix from lidar to camera frame #############
-if sim == False:
-    image_topic = '/camera/color/image_raw'
-    odometry_topic = '/Odometry'
-    trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
-                        [-1.0, 0.0, 0.0, 0.0],
-                        [0.0, -1.0, 0.0, 0.0],
-                        [0.0, 0.0, 0.0, 1.0]])
-else:
-    image_topic = '/rgb'
-    odometry_topic = '/Odometry'
-
-    trans_mat = np.array([[-0.01092, -0.03953,  0.99916,  0.05135],   
-                        [-0.99993, -0.00460, -0.01111, -0.02978],  
-                        [0.00503,  -0.99921, -0.03948, -0.01958], 
-                        [0.00000,   0.00000,  0.00000,  1.00000]])
-############################################################################
-
-
-
+image_topic = '/rgb'
+odometry_topic = '/Odometry'
 
 ####################### DO NOT CHANGE THESE ######################
 i = 0
@@ -125,7 +105,6 @@ class ImageNode(Node):
                 transf = np.eye(4)
                 transf[:3,:3]=r.as_matrix()
                 transf[:3,3]=tf_t
-                #transf = transf@trans_mat
                 try:
                     transf_out = np.vstack((transf_out,transf))
                     print("Caught synchronized rgb-odometry pair number %d!" %k, ', time difference:',time_difference,'ms.')

@@ -1,12 +1,12 @@
-# 3DGS in feature poor environments
+# Method for SfM-free Sparse Environment Reconstruction (MESSER)
 
-This package provides a pipeline for SfM-free 3DGS reconstruction optimized towards more coherent reconstructions in large sparse environments such as windmills. The poses of images and points are estimated solely from IMU and LiDAR using FAST-LIO, so there is no dependency on visual features. Thus any sparse environment should be reconstructable as long as you can achieve accurate pose predictions and point clouds. The main focus is on achieving coherent sparse environments by minimizing floating gaussians and overfitting free space during 3DGS reconstruction.
+This package provides a pipeline for SfM-free 3DGS reconstruction optimized towards more coherent reconstructions in large sparse environments such as windmills. The poses of images and points are estimated solely from IMU and LiDAR using FAST-LIO, so there is no dependency on visual features. Thus any sparse environment should be reconstructable as long as you can achieve accurate pose predictions and point clouds. The main focus is on achieving coherent sparse environments by minimizing floating gaussians and overfitting of free space during 3DGS reconstruction.
 
-![alt text](https://github.com/JonanaBanana/airlab_functions/blob/main/images/environment_comparison.png?raw=true)
-![alt text](https://github.com/JonanaBanana/airlab_functions/blob/main/images/windmill_comparison.png?raw=true)
-![alt text](https://github.com/JonanaBanana/airlab_functions/blob/main/images/filtering.png?raw=true)
+![alt text](https://github.com/JonanaBanana/MESSER_for_3DGS/blob/main/images/environment_comparison.png?raw=true)
+![alt text](https://github.com/JonanaBanana/MESSER_for_3DGS/blob/main/images/windmill_comparison.png?raw=true)
+![alt text](https://github.com/JonanaBanana/MESSER_for_3DGS/blob/main/images/filtering.png?raw=true)
 
-**NOTE:** _This is a package for testing and developing 3D reconstruction algorithms from RGB, LiDAR and odometry/pose information, specifically for use in feature poor environments where structure from motion using RGB images is not viable. This package is not fully and optimally developed, but is a work in progress as of May 26th, 2025._
+**NOTE:** _This is a package for testing and developing 3D reconstruction algorithms from RGB, LiDAR and odometry/pose information, specifically for use in feature poor environments where structure from motion using RGB images is not viable. This package is not fully and optimally developed, but is a work in progress as of May 29th, 2025._
 
 ## Requirements:
 
@@ -14,7 +14,7 @@ This package provides a pipeline for SfM-free 3DGS reconstruction optimized towa
 - Colmap (only for converting to gaussian splatting format)
 - Numpy
 - ROS2 (Only for use for point cloud map generation and odometry information.)
-- FAST-LIO (Same as for ROS2)
+- FAST-LIO2 (Same as for ROS2)
 
 ## With custom data collection:
 
@@ -28,7 +28,7 @@ Clone into your workspace. If you want to use ROS2 functionalities, clone into R
 
 ```
 cd your_workspace
-git clone https://github.com/JonanaBanana/airlab_functions.git
+git clone https://github.com/JonanaBanana/MESSER_for_3DGS.git
 ```
 
 If it is a ros2 workspace, make sure to use `colcon build`.
@@ -39,7 +39,7 @@ To collect data make sure both FAST-LIO and this package is working.
 first run:
 
 ```
-ros2 run airlab_functions isaacsim_subscriber
+ros2 run messer_for_3dgs isaacsim_subscriber
 ```
 
 then run:
@@ -52,16 +52,16 @@ This will make sure both FAST_LIO and the data gathering script is aligned, sinc
 If your image and odometry topics are not time synchronized, you can instead use
 
 ```
-ros2 run airlab_functions subscriber
+ros2 run messer_for_3dgs subscriber
 ```
 
 Which will not try to find synchronized timestamps but will instead just look for sets published within a given timeframe.
 
-**NOTE:** A few things might need to be adjusted. In `airlab_functions/airlab_functions/` open the file `isaacsim_subscriber.py`. In here you can change the variables where it says **Change These**.
+**NOTE:** A few things might need to be adjusted. In `MESSER_for_3DGS/ros2/` open the file `isaacsim_subscriber.py`. In here you can change the variables where it says **Change These**.
 
 - image_topic: the topic publishing the image_topic. Change to your image topic.
 - odometry_topic: the topic publishing the odometry topic. FAST_LIO publishes on /Odometry as standard.
-- main_path: The main folder for saving data. Does not need to exist, and will just be created if it doesn't. However, make sure the path is changed to make sense on your device.
+- main_path: The main folder for saving data. Does not need to exist, and will just be created if it doesn't. By default data is saved in the install folder of the workspace under messer_for_3dgs.
 - td: Provides a cooldown once a synchronized pair is found. Change this or set it to 0 to change or disable the cooldown.
 - queue_size: The queue size of the approximate synchronizer.
 - max_delay: The max delay between the image_topic and odometry_topic. If no data is saved, consider increasing the max delay. This may however cause bad matching between image and odometry, leading to worse reconstruction results.
@@ -75,7 +75,7 @@ In your fast_lio folder make sure to create a config file with the specs of your
 ### Step 4:
 
 The rest of this process does not use ROS2, but is simply running python scripts to process the data and prepare it for gaussian splatting.
-In `airlab_functions/python_scripts` run `generate_color_list.py`
+In `MESSER_for_3DGS/python_scripts` run `generate_color_list.py`
 
 **Note:** A few things might need to be adjusted. These are marked by CONSTANTS and PATHS
 
@@ -95,7 +95,7 @@ _No other variables should need to be changed_
 
 ### Step 5:
 
-In `airlab_functions/python_scripts` run `color_point_cloud.py`
+In `MESSER_for_3DGS/python_scripts` run `color_point_cloud.py`
 
 **Note:** A few things might need to be adjusted. These are marked by PATHS
 
@@ -107,7 +107,7 @@ _No other variables should need to be changed_
 
 ### Step 6:
 
-In `airlab_functions/python_scripts` run `convert_to_colmap.py`
+In `MESSER_for_3DGS/python_scripts` run `convert_to_colmap.py`
 
 **Note:** A few things might need to be adjusted. These are marked by CONSTANTS and PATHS
 
@@ -171,7 +171,7 @@ python metrics.py -m /path/to/main_path/
 
 ## Postprocessing:
 
-If you want to filter out the spherical background after training or filter out most of the floating gaussians that might have been created during training, in `airlab_functions/python_scripts/extra_utility_beta` run `post_process_gaussian_splat.py`. This filters out points reated during training that are not located close to the raw point cloud from fast-lio2. The following parameters can be changed:
+If you want to filter out the spherical background after training or filter out most of the floating gaussians that might have been created during training, in `MESSER_for_3DGS/python_scripts/extra_utility_beta` run `post_process_gaussian_splat.py`. This filters out points reated during training that are not located close to the raw point cloud from fast-lio2. The following parameters can be changed:
 
 - voxel_size: increase for faster but more rough filtering.
 - filter_factor: the maximum distance to each voxel filtered points required to be kept in the point cloud. Increase for a larger radius around the voxels to be kept. Minimum 1.

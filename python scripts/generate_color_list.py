@@ -3,6 +3,7 @@ import open3d as o3d
 import csv
 import os
 from copy import deepcopy
+from ament_index_python.packages import get_package_share_directory
 
 ######################### CONSTANTS ###############################
 use_gt_pose = False
@@ -27,8 +28,8 @@ py = 360
 
 
 ########################## PATHS ################################
-file_path = os.path.dirname(__file__)  
-main_path = os.path.join(file_path, '../example_stage_warehouse')
+main_path = get_package_share_directory('messer_for_3dgs')
+main_path = os.path.join(main_path,'../../captured_data/')
 pcd_path = os.path.join(main_path,'pcd')
 img_path = os.path.join(main_path,'input/')
 accumulated_path = os.path.join(main_path,'pcd/accumulated_point_cloud.pcd')

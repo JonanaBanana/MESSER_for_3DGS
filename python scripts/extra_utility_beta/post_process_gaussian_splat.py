@@ -3,7 +3,7 @@ import open3d as o3d
 import os
 from plyfile import PlyData
 from copy import deepcopy
-
+from ament_index_python.packages import get_package_share_directory
 
 ######################### CONSTANTS ###############################
 voxel_size = 0.5
@@ -13,8 +13,8 @@ viz = True
 #################################################################
 
 ########################## PATHS ################################
-file_path = os.path.dirname(__file__)  
-main_path = os.path.join(file_path, '../example_stage_warehouse')
+main_path = get_package_share_directory('messer_for_3dgs')
+main_path = os.path.join(main_path,'../../captured_data/')
 ply_path = os.path.join(main_path,'iteration_30000/point_cloud.ply')
 scans_path = os.path.join(main_path,'scans.pcd')
 output_folder = os.path.join(main_path,'iteration_31000')

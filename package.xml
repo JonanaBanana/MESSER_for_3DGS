@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>airlab_functions</name>
+  <name>messer_for_3dgs</name>
   <version>0.0.1</version>
   <description>A package for preparing SfM free reconstruction for use with 3DGS </description>
   <maintainer email="jonathan@majj.dk">jonathan</maintainer>
