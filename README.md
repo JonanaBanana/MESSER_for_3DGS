@@ -29,7 +29,7 @@ In `MESSER_for_3DGS/python_scripts` run `color_point_cloud.py`
 
 In `MESSER_for_3DGS/python_scripts` run `convert_to_colmap.py`
 
-To avoid additional vizualisation during runtime, set viz=False.
+To add additional vizualisation during runtime, set viz=True in `generate_color_list.py`.
 
 Now the data will be prepared for use with 3DGS. Follow step 7-8 in the section below to do the actual gaussian splatting training and evaluation.
 

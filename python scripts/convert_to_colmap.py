@@ -10,7 +10,7 @@ import struct
 ##################################################################
 ##################### DECLARE CONSTANTS ##########################
 ##################################################################
-voxel_size = 0.1
+voxel_size = 0.2
 min_x = 1 #min distance to keep points
 max_x = 400 #max distance to keep points
 hidden_point_removal_factor = 100000
@@ -411,183 +411,186 @@ def convert_to_colmap_points3D(p3d,N):
 ##################################################################
 ##################################################################
 
+def main(args=None):
+    ##################################################################
+    ######################### WRITE camera.bin #######################
+    ##################################################################
+    #camera.txt
+    # Camera list with one line of data per camera:
+    #   CAMERA_ID, MODEL, WIDTH, HEIGHT, PARAMS[] (f, cx, cy)
+    # Number of camera models: 1
+    camera_list = [1, "SIMPLE_PINHOLE", w, h, f, px, py]
+    cameras = convert_to_colmap_camera(camera_list)
+    write_cameras_text(cameras, cameras_txt_path)
+    write_cameras_binary(cameras, cameras_bin_path)
+    print("cameras.txt and cameras.bin created!")
 
-##################################################################
-######################### WRITE camera.bin #######################
-##################################################################
-#camera.txt
-# Camera list with one line of data per camera:
-#   CAMERA_ID, MODEL, WIDTH, HEIGHT, PARAMS[] (f, cx, cy)
-# Number of camera models: 1
-camera_list = [1, "SIMPLE_PINHOLE", w, h, f, px, py]
-cameras = convert_to_colmap_camera(camera_list)
-write_cameras_text(cameras, cameras_txt_path)
-write_cameras_binary(cameras, cameras_bin_path)
-print("cameras.txt and cameras.bin created!")
-
-##################################################################
-##################################################################
-##################################################################
+    ##################################################################
+    ##################################################################
+    ##################################################################
 
 
-##################################################################
-######################### WRITE images.bin #######################
-##################################################################
-# Image list with two lines of data per image:
-#   IMAGE_ID, QW, QX, QY, QZ, TX, TY, TZ, CAMERA_ID, NAME
-#   POINTS2D[] as (X, Y, POINT3D_ID)
-# Number of images: 2, mean observations per image: 2
-
-#read pointcloud
-pcd = o3d.io.read_point_cloud(reconstructed_path)
-mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=2, origin=[0, 0, 0])
-#o3d.visualization.draw_geometries([pcd,mesh_frame],zoom=0.3,
-#                                  front=[0., 0., -1.],
-#                                  lookat=[0., -2., 20],
-#                                  up=[0., -1., 0.])
-R,_ = np.shape(np.asarray(pcd.points))
-point3d_id = np.linspace(0,R-1,R).astype(int)
-print("Created 3D point indexing, found ",R,'points!')
-
-#Determine number of images
-k = 0
-for file in os.listdir(image_path):
-    k = k+1    
-print('Found ', k,'images!')
-
-#read transform table
-with open(transform_path, 'r') as file:
-    reader = csv.reader(file)
-    transform_data = []
-    for row in reader:
-        row = [float(i) for i in row]
-        transform_data.append(row)
-transform_data = np.array(transform_data)
-transform = np.reshape(transform_data,(-1,4,4))
-N,_,_ = np.shape(transform)
-print("Found",N,'transforms!')
-im_l1 = {}
-im_l2 = {}
-print("Processing images...")
-for i in range(N):
-    print(i,'/',N-1)
-    q_transform = np.linalg.inv(transform[i]@trans_mat)
-    #q_transform = np.linalg.pinv(transform[i])
-    t = q_transform[:3,3]
-    tx = t[0]
-    ty = t[1]
-    tz = t[2]
-    q = rotmat2qvec(q_transform[:3,:3])
-    qw = q[0]
-    qx = q[1]
-    qy = q[2]
-    qz = q[3]
-    temp = deepcopy(pcd)
-    temp.transform(q_transform)
-    #o3d.visualization.draw_geometries([temp,mesh_frame],zoom=0.3,
-    #                              front=[0., 0., -1.],
-    #                              lookat=[0, -2., 20],
-    #                              up=[0., -1., 0.])
-    camera = [0, 0, 0]
-    radius = hidden_point_removal_factor
-    _, pt_map = temp.hidden_point_removal(camera, radius)
-    temp = temp.select_by_index(pt_map)
-    #o3d.visualization.draw_geometries([temp,mesh_frame],zoom=0.3,
-    #                              front=[0., 0., -1.],
-    #                              lookat=[0, -2., 20],
-    #                              up=[0., -1., 0.])
-    
-    points = np.asarray(temp.points)
-    colors = np.asarray(temp.colors)
-    temp_point3d_id = deepcopy(point3d_id)
-    temp_point3d_id = np.squeeze(temp_point3d_id[pt_map])
-    r_p,_ = np.shape(points)
-
-    #Initial masking
-    x = points[:,0] #3dimensional decomposition of lidar points
-    y = points[:,1]
-    z = points[:,2]
-
-    #determining angle of each beam in pointcloud both horizontal and vertical angle
-    theta_x = np.arctan2(x,z) #2d angles of points correlating to angles of image pixels
-    theta_y = np.arctan2(-y,z)
-
-    # filter out points outside the fov angles of the 
-    ### Code for filtering points outside the fov of the camera
-    positive_mask = np.where((np.abs(theta_x) < (fov_x/2)) & (np.abs(theta_y)<(fov_y/2)) & (z<max_x) & (z > min_x)) #filtering mask
-    points = np.squeeze(points[positive_mask,:]) #filtered points
-    colors = np.squeeze(colors[positive_mask,:])
-    temp_point3d_id = np.squeeze(temp_point3d_id[positive_mask])
-    ### Code for projecting the point cloud onto the image plane ###
-    r_new,_ = np.shape(points) #shape of filtered array
-    extend_homogenous = np.ones((r_new,1)) #creating homogenous extender (r_new,1)
-
-    points_homogenous = np.hstack((points,extend_homogenous)) #homogenous array (r_new,4)
-
-    points_proj = points_homogenous@proj_mat.T #initial projection of points to image plane
-    x = np.divide(points_proj[:,0],points_proj[:,2]) #normalizing to fit with image size
-    y = np.divide(points_proj[:,1],points_proj[:,2])
-    z = extend_homogenous
-    points_out = np.column_stack((x,y,z)) # extending array to 3d to visualize as pointcloud (not necessary)
-    positive_mask = np.where((points_out[:,0] < w) & (points_out[:,1] < h) & (points_out[:,0] > 0) &(points_out[:,1] > 0) ) #filtering mask
-
-    points_out = np.squeeze(points_out[positive_mask,:])
-    colors_out = np.squeeze(colors[positive_mask,:])
-    temp_point3d_id = np.squeeze(temp_point3d_id[positive_mask])
+    ##################################################################
+    ######################### WRITE images.bin #######################
+    ##################################################################
+    # Image list with two lines of data per image:
     #   IMAGE_ID, QW, QX, QY, QZ, TX, TY, TZ, CAMERA_ID, NAME
     #   POINTS2D[] as (X, Y, POINT3D_ID)
-    #create line 1 of image_N in image.txt
-    if i >= 10:
-        im_string = 'img_000' + str(i) + '.jpg'
-        if i >= 100:
-            im_string = 'img_00' + str(i) + '.jpg'
-            if i >= 1000:
-                im_string = 'img_0' + str(i) + '.jpg'
-                if k >= 10000:
-                    im_string = 'img_' + str(i) + '.jpg'
-    else:
-        im_string = 'img_0000' + str(i) + '.jpg'
+    # Number of images: 2, mean observations per image: 2
+
+    #read pointcloud
+    pcd = o3d.io.read_point_cloud(reconstructed_path)
+    mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=2, origin=[0, 0, 0])
+    #o3d.visualization.draw_geometries([pcd,mesh_frame],zoom=0.3,
+    #                                  front=[0., 0., -1.],
+    #                                  lookat=[0., -2., 20],
+    #                                  up=[0., -1., 0.])
+    R,_ = np.shape(np.asarray(pcd.points))
+    point3d_id = np.linspace(0,R-1,R).astype(int)
+    print("Created 3D point indexing, found ",R,'points!')
+
+    #Determine number of images
+    k = 0
+    for file in os.listdir(image_path):
+        k = k+1    
+    print('Found ', k,'images!')
+
+    #read transform table
+    with open(transform_path, 'r') as file:
+        reader = csv.reader(file)
+        transform_data = []
+        for row in reader:
+            row = [float(i) for i in row]
+            transform_data.append(row)
+    transform_data = np.array(transform_data)
+    transform = np.reshape(transform_data,(-1,4,4))
+    N,_,_ = np.shape(transform)
+    print("Found",N,'transforms!')
+    im_l1 = {}
+    im_l2 = {}
+    print("Processing images...")
+    for i in range(N):
+        print(i,'/',N-1)
+        q_transform = np.linalg.inv(transform[i]@trans_mat)
+        #q_transform = np.linalg.pinv(transform[i])
+        t = q_transform[:3,3]
+        tx = t[0]
+        ty = t[1]
+        tz = t[2]
+        q = rotmat2qvec(q_transform[:3,:3])
+        qw = q[0]
+        qx = q[1]
+        qy = q[2]
+        qz = q[3]
+        temp = deepcopy(pcd)
+        temp.transform(q_transform)
+        #o3d.visualization.draw_geometries([temp,mesh_frame],zoom=0.3,
+        #                              front=[0., 0., -1.],
+        #                              lookat=[0, -2., 20],
+        #                              up=[0., -1., 0.])
+        camera = [0, 0, 0]
+        radius = hidden_point_removal_factor
+        _, pt_map = temp.hidden_point_removal(camera, radius)
+        temp = temp.select_by_index(pt_map)
+        #o3d.visualization.draw_geometries([temp,mesh_frame],zoom=0.3,
+        #                              front=[0., 0., -1.],
+        #                              lookat=[0, -2., 20],
+        #                              up=[0., -1., 0.])
+        
+        points = np.asarray(temp.points)
+        colors = np.asarray(temp.colors)
+        temp_point3d_id = deepcopy(point3d_id)
+        temp_point3d_id = np.squeeze(temp_point3d_id[pt_map])
+        r_p,_ = np.shape(points)
+
+        #Initial masking
+        x = points[:,0] #3dimensional decomposition of lidar points
+        y = points[:,1]
+        z = points[:,2]
+
+        #determining angle of each beam in pointcloud both horizontal and vertical angle
+        theta_x = np.arctan2(x,z) #2d angles of points correlating to angles of image pixels
+        theta_y = np.arctan2(-y,z)
+
+        # filter out points outside the fov angles of the 
+        ### Code for filtering points outside the fov of the camera
+        positive_mask = np.where((np.abs(theta_x) < (fov_x/2)) & (np.abs(theta_y)<(fov_y/2)) & (z<max_x) & (z > min_x)) #filtering mask
+        points = np.squeeze(points[positive_mask,:]) #filtered points
+        colors = np.squeeze(colors[positive_mask,:])
+        temp_point3d_id = np.squeeze(temp_point3d_id[positive_mask])
+        ### Code for projecting the point cloud onto the image plane ###
+        r_new,_ = np.shape(points) #shape of filtered array
+        extend_homogenous = np.ones((r_new,1)) #creating homogenous extender (r_new,1)
+
+        points_homogenous = np.hstack((points,extend_homogenous)) #homogenous array (r_new,4)
+
+        points_proj = points_homogenous@proj_mat.T #initial projection of points to image plane
+        x = np.divide(points_proj[:,0],points_proj[:,2]) #normalizing to fit with image size
+        y = np.divide(points_proj[:,1],points_proj[:,2])
+        z = extend_homogenous
+        points_out = np.column_stack((x,y,z)) # extending array to 3d to visualize as pointcloud (not necessary)
+        positive_mask = np.where((points_out[:,0] < w) & (points_out[:,1] < h) & (points_out[:,0] > 0) &(points_out[:,1] > 0) ) #filtering mask
+
+        points_out = np.squeeze(points_out[positive_mask,:])
+        colors_out = np.squeeze(colors[positive_mask,:])
+        temp_point3d_id = np.squeeze(temp_point3d_id[positive_mask])
+        #   IMAGE_ID, QW, QX, QY, QZ, TX, TY, TZ, CAMERA_ID, NAME
+        #   POINTS2D[] as (X, Y, POINT3D_ID)
+        #create line 1 of image_N in image.txt
+        if i >= 10:
+            im_string = 'img_000' + str(i) + '.jpg'
+            if i >= 100:
+                im_string = 'img_00' + str(i) + '.jpg'
+                if i >= 1000:
+                    im_string = 'img_0' + str(i) + '.jpg'
+                    if k >= 10000:
+                        im_string = 'img_' + str(i) + '.jpg'
+        else:
+            im_string = 'img_0000' + str(i) + '.jpg'
+        
+        im_l1[i] = [i+1,qw,qx,qy,qz,tx,ty,tz,1,im_string]
+        im_l2[i] = list(chain.from_iterable(zip(points_out[:,0],points_out[:,1],temp_point3d_id.astype(int))))
+    images = convert_to_colmap_images(im_l1,im_l2,N)
+
+    write_images_text(images, images_txt_path)
+    write_images_binary(images, images_bin_path)
+    print("images.txt and images.bin created!")
+
+    ##################################################################
+    ##################################################################
+    ##################################################################
+
+
+    ##################################################################
+    ######################### WRITE points3D.bin #####################
+    ##################################################################
+    # 3D point list with one line of data per point:
+    #   POINT3D_ID, X, Y, Z, R, G, B, ERROR, TRACK[] as (IMAGE_ID, POINT2D_IDX)
+    # Number of points: 3, mean track length: 3.3334
+    p3d = {}
+    points = np.asarray(pcd.points)
+    colors = np.round((np.asarray(pcd.colors)*255)).astype(int)
+    p_x = points[:,0]
+    p_y = points[:,1]
+    p_z = points[:,2]
+    c_r = colors[:,0]
+    c_g = colors[:,1]
+    c_b = colors[:,2]
+    error = 0.1
+    track = [0, 0]
+    print('Processing Points...')
+    for i in range(R):
+        id = point3d_id[i]
+        p3d[i] = [point3d_id[i], p_x[i],p_y[i],p_z[i],c_r[i],c_g[i],c_b[i], error, 0, 0 ]
+        
+    points3D = convert_to_colmap_points3D(p3d,R)
+    write_points3D_text(points3D, points3D_txt_path)
+    write_points3D_binary(points3D, points3D_bin_path)
+    print("points3D.txt and points3D.bin created!")
+
+    ##################################################################
+    ##################################################################
+    ##################################################################
     
-    im_l1[i] = [i+1,qw,qx,qy,qz,tx,ty,tz,1,im_string]
-    im_l2[i] = list(chain.from_iterable(zip(points_out[:,0],points_out[:,1],temp_point3d_id.astype(int))))
-images = convert_to_colmap_images(im_l1,im_l2,N)
-
-write_images_text(images, images_txt_path)
-write_images_binary(images, images_bin_path)
-print("images.txt and images.bin created!")
-
-##################################################################
-##################################################################
-##################################################################
-
-
-##################################################################
-######################### WRITE points3D.bin #####################
-##################################################################
-# 3D point list with one line of data per point:
-#   POINT3D_ID, X, Y, Z, R, G, B, ERROR, TRACK[] as (IMAGE_ID, POINT2D_IDX)
-# Number of points: 3, mean track length: 3.3334
-p3d = {}
-points = np.asarray(pcd.points)
-colors = np.round((np.asarray(pcd.colors)*255)).astype(int)
-p_x = points[:,0]
-p_y = points[:,1]
-p_z = points[:,2]
-c_r = colors[:,0]
-c_g = colors[:,1]
-c_b = colors[:,2]
-error = 0.1
-track = [0, 0]
-print('Processing Points...')
-for i in range(R):
-    id = point3d_id[i]
-    p3d[i] = [point3d_id[i], p_x[i],p_y[i],p_z[i],c_r[i],c_g[i],c_b[i], error, 0, 0 ]
-    
-points3D = convert_to_colmap_points3D(p3d,R)
-write_points3D_text(points3D, points3D_txt_path)
-write_points3D_binary(points3D, points3D_bin_path)
-print("points3D.txt and points3D.bin created!")
-
-##################################################################
-##################################################################
-##################################################################
+if __name__ == '__main__':
+    main()
