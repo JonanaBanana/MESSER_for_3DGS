@@ -1,5 +1,6 @@
 import numpy as np
 import open3d as o3d
+from ament_index_python.packages import get_package_share_directory
 import csv
 import os
 from copy import deepcopy
@@ -8,7 +9,7 @@ from copy import deepcopy
 use_gt_pose = False
 viz = False
 
-fill_background = False
+fill_background = True
 sphere_center = [0,0,0]
 sphere_radius = 200 #meters
 sphere_num_pts = 50000
@@ -29,7 +30,8 @@ py = 360
 ########################## PATHS ################################
 file_path = os.path.dirname(__file__)  
 main_path = os.path.join(file_path, '../example_stage_warehouse')
-pcd_path = os.path.join(main_path,'pcd')
+#main_path = get_package_share_directory('messer_for_3dgs')
+#main_path = os.path.join(main_path,'../../captured_data/')
 img_path = os.path.join(main_path,'input/')
 accumulated_path = os.path.join(main_path,'pcd/accumulated_point_cloud.pcd')
 downsampled_path = os.path.join(main_path,'downsampled_point_cloud.pcd')

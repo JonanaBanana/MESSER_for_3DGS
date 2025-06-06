@@ -21,7 +21,9 @@ setup(
     entry_points={
         'console_scripts': [
         'isaacsim_subscriber = ros2.isaacsim_subscriber:main',
-        'subscriber = ros2.subscriber:main'
+        'subscriber = ros2.subscriber:main',
+        'pointcloud_accumulator = ros2.pointcloud_accumulator:main',
+        'rgb_transf_subscriber = ros2.rgb_transf_subscriber:main'
         ],
     },
 )

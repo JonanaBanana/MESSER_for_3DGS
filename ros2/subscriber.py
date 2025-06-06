@@ -5,8 +5,6 @@ from ament_index_python.packages import get_package_share_directory
 from sensor_msgs.msg import Image
 from nav_msgs.msg import Odometry
 
-from message_filters import Subscriber, ApproximateTimeSynchronizer
-
 from cv_bridge import CvBridge
 import cv2
 

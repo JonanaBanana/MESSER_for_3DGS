@@ -2,6 +2,7 @@ import numpy as np
 import open3d as o3d
 import csv
 import os
+from ament_index_python.packages import get_package_share_directory
 from copy import deepcopy
 from itertools import chain
 import collections
@@ -30,6 +31,8 @@ proj_mat = np.array([[f, 0, px, 0],
 # Paths
 file_path = os.path.dirname(__file__)  
 main_path = os.path.join(file_path, '../example_stage_warehouse')
+#main_path = get_package_share_directory('messer_for_3dgs')
+#main_path = os.path.join(main_path,'../../captured_data/')
 image_path = os.path.join(main_path,'input')
 pcd_path = os.path.join(main_path,'pcd')
 reconstructed_path = os.path.join(main_path,'reconstructed.pcd')
