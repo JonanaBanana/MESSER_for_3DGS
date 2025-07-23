@@ -15,6 +15,12 @@ csv_path = os.path.join(main_path,'point_cloud_color_information.csv')
 out_path = os.path.join(main_path,'reconstructed.pcd')
 #################################################################
 
+def rotate_view(vis):
+        ctr = vis.get_view_control()
+        ctr.set_zoom(0.1)
+        ctr.rotate(1.0, 0.0)
+        return False
+
 def main(args=None):
     pcd_fl = o3d.io.read_point_cloud(downsampled_path)
     pcd = o3d.geometry.PointCloud()
@@ -70,10 +76,20 @@ def main(args=None):
     pcd.colors = o3d.utility.Vector3dVector(colors_out)
     o3d.io.write_point_cloud(out_path, pcd, write_ascii=True)
     mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=2, origin=[0, 0, 0])
-    o3d.visualization.draw_geometries([pcd,mesh_frame],zoom=0.3,
-                                    front=[0., 0., -1.],
-                                    lookat=[0., -2., 20],
-                                    up=[0., -1., 0.])
+    pcd.transform(np.linalg.inv(np.array([[0.0, 0.0, 1.0, 0.0],
+                    [-1.0, 0.0, 0.0, 0.0],
+                    [0.0, -1.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0]])))
+    pcd.transform(np.array([[-1.0,  0.0,  0.0, 0.0],
+                                    [0.0,   -1.0,  0.0, 0.0],
+                                    [0.0,   0.0, 1.0, 0.0],
+                                    [0.0,   0.0,  0.0, 1.0]]))
+    o3d.visualization.draw_geometries_with_animation_callback([pcd],
+                                                            rotate_view)
+    #o3d.visualization.draw_geometries([pcd,mesh_frame],zoom=0.3,
+    #                                front=[0., 0., -1.],
+    #                                lookat=[0., -2., 20],
+    #                                up=[0., -1., 0.])
 
 if __name__ == '__main__':
     main()

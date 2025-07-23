@@ -4,12 +4,11 @@ from ament_index_python.packages import get_package_share_directory
 import csv
 import os
 from copy import deepcopy
-
 ######################### CONSTANTS ###############################
 use_gt_pose = False
-viz = False
+viz = True
 
-fill_background = True
+fill_background = False
 sphere_center = [0,0,0]
 sphere_radius = 200 #meters
 sphere_num_pts = 50000
@@ -26,7 +25,12 @@ px = 640
 py = 360
 #################################################################
 
-
+def rotate_view(vis):
+        ctr = vis.get_view_control()
+        ctr.set_zoom(0.1)
+        ctr.rotate(1.0, 0.0)
+        return False
+    
 ########################## PATHS ################################
 file_path = os.path.dirname(__file__)  
 main_path = os.path.join(file_path, '../example_stage_warehouse')
@@ -51,7 +55,9 @@ trans_mat = np.array([[0.0, 0.0, 1.0, 0.0],
 
         
 def main(args=None):
+    non_blocking_flag = False
     #read pointcloud
+    temp_viz = o3d.geometry.PointCloud()
     pcd = o3d.geometry.PointCloud()
     pcd_fl = o3d.io.read_point_cloud(scans_path)
     pcd_fl.remove_non_finite_points()
@@ -78,6 +84,14 @@ def main(args=None):
     o3d.io.write_point_cloud(downsampled_path, pcd_down_out, write_ascii=True)
     mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.5, origin=[0, 0, 0])
     if viz == True:
+        pcd_viz = deepcopy(pcd_down_out)
+        pcd_viz.transform(np.linalg.inv(trans_mat))
+        pcd_viz.transform(np.array([[-1.0,  0.0,  0.0, 0.0],
+                                    [0.0,   -1.0,  0.0, 0.0],
+                                    [0.0,   0.0, 1.0, 0.0],
+                                    [0.0,   0.0,  0.0, 1.0]]))
+        o3d.visualization.draw_geometries_with_animation_callback([pcd_viz],
+                                                            rotate_view)
         o3d.visualization.draw_geometries([pcd_down_out,mesh_frame],zoom=0.1,
                                         front=[-1., 0., 0.],
                                         lookat=[20., 0., 0],
@@ -87,7 +101,7 @@ def main(args=None):
         #                                    lookat=[0., -2., 20],
         #                                    up=[0., -1., 0.])
 
-
+    
     fov_x = 2*np.arctan2(w,(2*f))
     fov_y = 2*np.arctan2(h,(2*f))
     #projection matrix to project 3d points to image plane
@@ -204,23 +218,30 @@ def main(args=None):
         else:
             temp_list = np.hstack((temp_point3d_id,colors_proj))
             list_colors = np.vstack((list_colors,temp_list))
-        temp.points = o3d.utility.Vector3dVector(points)
-        temp.colors = o3d.utility.Vector3dVector(colors)
-        temp.transform(q_transform)    
+        temp_viz.points = o3d.utility.Vector3dVector(points)
+        temp_viz.colors = o3d.utility.Vector3dVector(colors)
+        temp_viz.transform(q_transform)    
         if viz == True:
-            o3d.visualization.draw_geometries([temp,mesh_frame],zoom=0.003,
-                                            front=[0., 0., -1.],
-                                            lookat=[0., 0., 1],
-                                            up=[0., -1., 0.])
-            """
-            temp_pixel = o3d.geometry.PointCloud()
-            temp_pixel.points = o3d.utility.Vector3dVector(temp_points_proj)
-            temp_pixel.colors = o3d.utility.Vector3dVector(colors_proj)
-            mesh_frame_pixel = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1000, origin=[0, 0, 0])
-            o3d.visualization.draw_geometries([temp_pixel,mesh_frame_pixel],zoom=100,
-                                            front=[0., 0., -1.],
-                                            lookat=[0., 360., 640],
-                                            up=[0., -1., 0.])"""
+            if non_blocking_flag==False:
+                vis = o3d.visualization.Visualizer()
+                vis.create_window()
+                vis.get_view_control().set_front((0.,0.,-1.))
+                vis.get_view_control().set_lookat((0.,0.,1.))
+                vis.get_view_control().set_up((0.,-1.,0.))
+                vis.get_view_control().set_zoom(0.003)
+                vis.add_geometry(temp_viz)
+                non_blocking_flag = True
+            vis.get_view_control().set_front((0.,0.,-1.))
+            vis.get_view_control().set_lookat((0.,0.,1.))
+            vis.get_view_control().set_up((0.,-1.,0.))
+            vis.get_view_control().set_zoom(0.003)
+            vis.update_geometry(temp_viz)
+            vis.poll_events()
+            vis.update_renderer()
+            #o3d.visualization.draw_geometries([temp,mesh_frame],zoom=0.003,
+            #                                front=[0., 0., -1.],
+            #                                lookat=[0., 0., 1],
+            #                                up=[0., -1., 0.])
         print("Found "+str(M)+" points in image "+str(i))
     print("Saving point color information at: "+str(output_path))
     np.savetxt(output_path, list_colors, fmt=['%d','%.8f','%.8f','%.8f'], delimiter=",")
