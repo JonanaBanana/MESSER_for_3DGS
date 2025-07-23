@@ -56,7 +56,7 @@ To collect data make sure both FAST-LIO and this package is working.
 first run:
 
 ```
-ros2 run messer_for_3dgs isaacsim_subscriber
+ros2 run messer_for_3dgs synchronized_subscriber
 ```
 
 then run:
@@ -74,7 +74,7 @@ ros2 run messer_for_3dgs subscriber
 
 Which will not try to find synchronized timestamps but will instead just look for sets published within a given timeframe.
 
-**NOTE:** A few things might need to be adjusted. In `MESSER_for_3DGS/ros2/` open the file `isaacsim_subscriber.py`. In here you can change the variables where it says **Change These**.
+**NOTE:** A few things might need to be adjusted. In `MESSER_for_3DGS/ros2/` open the file `synchronized_subscriber.py`. In here you can change the variables where it says **Change These**.
 
 - image_topic: the topic publishing the image_topic. Change to your image topic.
 - odometry_topic: the topic publishing the odometry topic. FAST_LIO publishes on /Odometry as standard.
@@ -104,7 +104,7 @@ In `MESSER_for_3DGS/python_scripts` run `generate_color_list.py`
 - max_x: same as above but maximum distance.
 - f, px, py, h, w: all of these are part of the camera intrinsics, so either find the ones relevant to your camera model or determine them using other methods.
 - viz: Change to True to see visualization along the way. **This will block the code while visualizing**
-- main_path: must be the same main directory used by isaacsim_subscriber.py.
+- main_path: must be the same main directory used by synchronized_subscriber.py.
 
 _No other variables should need to be changed_
 

@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-        'isaacsim_subscriber = ros2.isaacsim_subscriber:main',
+        'synchronized_subscriber = ros2.synchronized_subscriber:main',
         'subscriber = ros2.subscriber:main',
         'pointcloud_accumulator = ros2.pointcloud_accumulator:main',
         'rgb_transf_subscriber = ros2.rgb_transf_subscriber:main'
