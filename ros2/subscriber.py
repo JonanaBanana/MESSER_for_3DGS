@@ -42,6 +42,7 @@ odometry_topic = '/Odometry'
 ####################### DO NOT CHANGE THESE ######################
 i = 0
 k = 0
+img_time = datetime.now()
 last_odom_time = datetime.now()
 transform_path = os.path.join(main_path,'transformations.csv')
 image_path = os.path.join(main_path,'input/')

@@ -18,7 +18,7 @@ This package provides a pipeline for SfM-free 3DGS reconstruction optimized towa
 
 ## Quick Test
 
-To quickly and easily evaluate the performance of the method, a sample dataset is provided in the package as `MESSER_for_3DGS/example_stage_warehouse`.
+To quickly and easily evaluate the performance of the method, two sample dataset are provided in the package as `MESSER_for_3DGS/example_stage_wind_turbine` and `MESSER_for_3DGS/example_stage_warehouse`.
 The folders of the python scripts has been setup to process that example folder by default so running it will perform the reconstruction steps with vizualization. The scripts are not setup to be run from shell, only the ROS2 scripts. Simply run the following scripts in vscode.
 
 ### Step 1:

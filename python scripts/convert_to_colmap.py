@@ -29,10 +29,18 @@ proj_mat = np.array([[f, 0, px, 0],
                 [0, 0, 1, 0]])
 
 # Paths
-file_path = os.path.dirname(__file__)  
-main_path = os.path.join(file_path, '../example_stage_warehouse')
+file_path = os.path.dirname(__file__)
+
+#windturbine example data
+main_path = os.path.join(file_path, '../example_stage_wind_turbine')
+
+#warehouse example data
+#main_path = os.path.join(file_path, '../example_stage_warehouse')
+
+#for your own captured data
 #main_path = get_package_share_directory('messer_for_3dgs')
 #main_path = os.path.join(main_path,'../../captured_data/')
+
 image_path = os.path.join(main_path,'input')
 pcd_path = os.path.join(main_path,'pcd')
 reconstructed_path = os.path.join(main_path,'reconstructed.pcd')

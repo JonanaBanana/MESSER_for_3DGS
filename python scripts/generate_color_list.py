@@ -8,7 +8,7 @@ from copy import deepcopy
 use_gt_pose = False
 viz = True
 
-fill_background = False
+fill_background = True
 sphere_center = [0,0,0]
 sphere_radius = 200 #meters
 sphere_num_pts = 50000
@@ -33,9 +33,16 @@ def rotate_view(vis):
     
 ########################## PATHS ################################
 file_path = os.path.dirname(__file__)  
-main_path = os.path.join(file_path, '../example_stage_warehouse')
+#windturbine example data
+main_path = os.path.join(file_path, '../example_stage_wind_turbine')
+
+#warehouse example data
+#main_path = os.path.join(file_path, '../example_stage_warehouse')
+
+#for your own captured data
 #main_path = get_package_share_directory('messer_for_3dgs')
 #main_path = os.path.join(main_path,'../../captured_data/')
+
 img_path = os.path.join(main_path,'input/')
 accumulated_path = os.path.join(main_path,'pcd/accumulated_point_cloud.pcd')
 downsampled_path = os.path.join(main_path,'downsampled_point_cloud.pcd')

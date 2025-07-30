@@ -7,7 +7,13 @@ from copy import deepcopy
 
 ########################## PATHS ################################
 file_path = os.path.dirname(__file__)  
-main_path = os.path.join(file_path, '../example_stage_warehouse')
+#windturbine example data
+main_path = os.path.join(file_path, '../example_stage_wind_turbine')
+
+#warehouse example data
+#main_path = os.path.join(file_path, '../example_stage_warehouse')
+
+#for your own captured data
 #main_path = get_package_share_directory('messer_for_3dgs')
 #main_path = os.path.join(main_path,'../../captured_data/')
 downsampled_path = os.path.join(main_path,'downsampled_point_cloud.pcd')
